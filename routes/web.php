@@ -31,6 +31,11 @@ Route::prefix('api')->name('api.')->group(function () {
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Health check route
+Route::get('/health', function () {
+    return response('OK', 200);
+})->name('health');
+
 // Invoice routes
 Route::prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/create', [App\Http\Controllers\InvoiceController::class, 'create'])->name('create');
