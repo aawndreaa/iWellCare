@@ -21,14 +21,14 @@ return new class extends Migration
             $table->string('last_name', 255);
             $table->string('middle_name', 255)->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->enum('gender', ['male', 'female', 'other'])->nullable();
+            $table->string('gender', 10)->nullable()->check("gender IN ('male', 'female', 'other')");
             $table->string('phone_number', 255)->nullable();
             $table->string('street_address', 255)->nullable();
             $table->string('city', 255)->nullable();
             $table->string('state_province', 255)->nullable();
             $table->string('postal_code', 255)->nullable();
             $table->string('country', 255)->nullable();
-            $table->enum('role', ['doctor', 'staff', 'patient'])->default('patient');
+            $table->string('role', 20)->default('patient')->check("role IN ('doctor', 'staff', 'patient')");
             $table->boolean('is_active')->default(true);
             $table->string('profile_photo', 255)->nullable();
             $table->rememberToken();

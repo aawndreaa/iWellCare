@@ -18,10 +18,10 @@ return new class extends Migration
             $table->date('appointment_date');
             $table->time('appointment_time');
             $table->string('type', 255);
-            $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
+            $table->string('status', 20)->default('pending')->check("status IN ('pending', 'confirmed', 'completed', 'cancelled')");
             $table->text('notes')->nullable();
             $table->text('symptoms')->nullable();
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
+            $table->string('priority', 10)->default('medium')->check("priority IN ('low', 'medium', 'high', 'urgent')");
             $table->integer('duration', false, true)->default(30); // in minutes
             $table->string('room_number', 255)->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');

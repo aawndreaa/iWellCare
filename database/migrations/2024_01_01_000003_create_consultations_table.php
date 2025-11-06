@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
             $table->date('consultation_date');
             $table->time('consultation_time')->nullable();
-            $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
+            $table->string('status', 20)->default('scheduled')->check("status IN ('scheduled', 'in_progress', 'completed', 'cancelled')");
             $table->text('chief_complaint')->nullable();
             $table->text('present_illness')->nullable();
             $table->text('past_medical_history')->nullable();
