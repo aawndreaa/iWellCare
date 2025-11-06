@@ -12,7 +12,7 @@
     "buildCommand": "chmod +x railway-build.sh && ./railway-build.sh"
   },
   "deploy": {
-    "startCommand": "php-fpm & php artisan migrate --force && nginx -g 'daemon off;'",
+    "startCommand": "php artisan migrate --force && nginx -g 'daemon off;'",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
