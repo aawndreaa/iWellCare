@@ -34,8 +34,9 @@ php artisan view:cache
 echo "🔗 Creating storage link..."
 php artisan storage:link
 
-# Skip migrations - Railway handles database setup separately
-echo "⏭️ Skipping migrations - Railway manages database separately"
+# Run migrations
+echo "🗄️ Running database migrations..."
+php artisan migrate --force
 
 # Optimize for production
 echo "⚡ Optimizing for production..."
