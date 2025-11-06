@@ -51,28 +51,42 @@ class AvailabilityController extends Controller
      */
     public function setUnavailable(Request $request, $doctorId)
     {
-        $request->validate([
-            'status' => 'required|in:unavailable,on_leave,emergency',
-            'message' => 'nullable|string|max:500',
-            'until' => 'nullable|date|after:now',
-        ]);
+        try {
+            $request->validate([
+                'status' => 'required|in:unavailable,on_leave,emergency',
+                'message' => 'nullable|string|max:500',
+                'until' => 'nullable|date|after:now',
+                'notes' => 'nullable|string|max:500',
+            ]);
 
-        $doctor = Doctor::findOrFail($doctorId);
+            $doctor = Doctor::findOrFail($doctorId);
 
-        DoctorAvailabilitySetting::create([
-            'doctor_id' => $doctor->user_id,
-            'is_available' => false,
-            'unavailable_message' => $request->message ?? 'Doctor is temporarily unavailable',
-            'unavailable_until' => $request->until,
-            'status' => $request->status,
-            'notes' => $request->notes ?? null,
-            'set_by' => Auth::id(),
-        ]);
+            DoctorAvailabilitySetting::create([
+                'doctor_id' => $doctor->user_id,
+                'is_available' => false,
+                'unavailable_message' => $request->message ?? 'Doctor is temporarily unavailable',
+                'unavailable_until' => $request->until,
+                'status' => $request->status,
+                'notes' => $request->notes ?? null,
+                'set_by' => Auth::id(),
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Doctor availability updated successfully',
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Doctor availability updated successfully',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . implode(', ', $e->errors()),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Doctor availability error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating doctor availability: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -80,22 +94,24 @@ class AvailabilityController extends Controller
      */
     public function setAvailable(Request $request, $doctorId)
     {
-        $doctor = Doctor::findOrFail($doctorId);
+        try {
+            $doctor = Doctor::findOrFail($doctorId);
 
-        DoctorAvailabilitySetting::create([
-            'doctor_id' => $doctor->user_id,
-            'is_available' => true,
-            'unavailable_message' => null,
-            'unavailable_until' => null,
-            'status' => 'available',
-            'notes' => 'Doctor is now available',
-            'set_by' => Auth::id(),
-        ]);
+            DoctorAvailabilitySetting::create([
+                'doctor_id' => $doctor->user_id,
+                'is_available' => true,
+                'unavailable_message' => null,
+                'unavailable_until' => null,
+                'status' => 'available',
+                'notes' => 'Doctor is now available',
+                'set_by' => Auth::id(),
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Doctor is now available',
-        ]);
+            return redirect()->back()->with('success', 'Doctor is now available');
+        } catch (\Exception $e) {
+            \Log::error('Doctor availability error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error updating doctor availability: ' . $e->getMessage());
+        }
     }
 
     /**

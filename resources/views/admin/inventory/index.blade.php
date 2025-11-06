@@ -90,42 +90,62 @@
                     </div>
                     <div class="ml-4 flex-1">
                         <p class="text-sm font-medium text-gray-500">Total Value</p>
-                        <p class="text-3xl font-bold text-gray-900">₱{{ number_format($inventory->sum(fn($i) => $i->quantity * $i->unit_price), 2) }}</p>
+                        <p class="text-3xl font-bold text-gray-900">₱{{ number_format($inventory->sum(fn($i) => $i->quantity * $i->unit_price), 0) }}</p>
                         <p class="text-sm text-gray-600">Inventory worth</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Search and Actions -->
-    <form method="GET" action="" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-            <div class="flex flex-col sm:flex-row gap-4 flex-1">
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Search by item name..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">All Categories</option>
-                        <option value="medicine" {{ request('category') === 'medicine' ? 'selected' : '' }}>Medicine</option>
-                        <option value="supplies" {{ request('category') === 'supplies' ? 'selected' : '' }}>Medical Supplies</option>
-                        <option value="equipment" {{ request('category') === 'equipment' ? 'selected' : '' }}>Equipment</option>
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                        <i class="fas fa-search mr-2"></i>Search
-                    </button>
-                </div>
+    <!-- Search and Filter -->
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Inventory Management</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Search and filter inventory items</p>
             </div>
             <a href="{{ route('admin.inventory.create') }}" class="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-semibold">
                 <i class="fas fa-plus mr-2"></i>Add New Item
             </a>
         </div>
-    </form>
+        <form id="filterForm" method="GET" action="{{ route('admin.inventory.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm mb-2">Item Name</label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="name" name="name" class="form-input w-full pl-10"
+                           value="{{ request('name') }}" placeholder="Search by item name...">
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm mb-2">Category</label>
+                <select id="category" name="category" class="form-input w-full">
+                    <option value="">All Categories</option>
+                    <option value="medicine" {{ request('category') === 'medicine' ? 'selected' : '' }}>Medicine</option>
+                    <option value="supplies" {{ request('category') === 'supplies' ? 'selected' : '' }}>Medical Supplies</option>
+                    <option value="equipment" {{ request('category') === 'equipment' ? 'selected' : '' }}>Equipment</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm mb-2">Stock Status</label>
+                <select id="stock_status" name="stock_status" class="form-input w-full">
+                    <option value="">All Items</option>
+                    <option value="in_stock" {{ request('stock_status') === 'in_stock' ? 'selected' : '' }}>In Stock</option>
+                    <option value="low_stock" {{ request('stock_status') === 'low_stock' ? 'selected' : '' }}>Low Stock</option>
+                    <option value="out_of_stock" {{ request('stock_status') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm mb-2">Sort By</label>
+                <select id="sort_by" name="sort_by" class="form-input w-full">
+                    <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Name</option>
+                    <option value="quantity" {{ request('sort_by') === 'quantity' ? 'selected' : '' }}>Quantity</option>
+                    <option value="unit_price" {{ request('sort_by') === 'unit_price' ? 'selected' : '' }}>Price</option>
+                    <option value="created_at" {{ request('sort_by') === 'created_at' ? 'selected' : '' }}>Date Added</option>
+                </select>
+            </div>
+        </form>
+    </div>
 
     @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
@@ -164,11 +184,11 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-500">Unit Price:</span>
-                            <span class="font-semibold text-gray-900">₱{{ number_format($item->unit_price, 2) }}</span>
+                            <span class="font-semibold text-gray-900">₱{{ number_format($item->unit_price, 0) }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-500">Total Value:</span>
-                            <span class="font-semibold text-gray-900">₱{{ number_format($item->quantity * $item->unit_price, 2) }}</span>
+                            <span class="font-semibold text-gray-900">₱{{ number_format($item->quantity * $item->unit_price, 0) }}</span>
                         </div>
                         @if($item->expiration_date)
                             <div class="flex justify-between items-center">
@@ -220,16 +240,31 @@
 
 @push('scripts')
 <script>
-// Reset search form
-function resetSearchForm() {
-    // Clear all form inputs
-    const form = document.querySelector('form[method="GET"]');
-    if (form) {
-        form.reset();
-        // Submit the form to clear search parameters
-        form.submit();
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const filters = ['category', 'stock_status', 'sort_by'];
+
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
+    });
+
+    // For search input, add input event listener with debounce
+    const searchInput = document.getElementById('name');
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 500);
+        });
     }
-}
+});
 </script>
 @endpush
 </div>

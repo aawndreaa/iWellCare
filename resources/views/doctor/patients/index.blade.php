@@ -9,10 +9,23 @@
 <!-- Search and Filters -->
 <div class="card mb-6">
     <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Patients</h3>
+            </div>
+            <div class="flex space-x-2">
+                <a href="?filter=active&t={{ time() }}" class="px-4 py-2 text-sm font-medium rounded-md {{ request('filter') !== 'archived' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700' }}">
+                    Active Patients
+                </a>
+                <a href="?filter=archived&t={{ time() }}" class="px-4 py-2 text-sm font-medium rounded-md {{ request('filter') === 'archived' ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700' }}">
+                    Archived Patients ({{ $archivedCount ?? 0 }})
+                </a>
+            </div>
+        </div>
         <form method="GET" action="{{ route('doctor.patients.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
-                <input type="text" class="form-input w-full" name="search" 
-                       placeholder="Search by name, contact, or email" 
+                <input type="text" class="form-input w-full" name="search"
+                       placeholder="Search by name, contact, or email"
                        value="{{ request('search') }}">
             </div>
             <div>
@@ -34,9 +47,20 @@
 <div class="table-container">
     <div class="table-header">
         <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold">All Patients</h3>
+            <h3 class="text-xl font-bold">
+                @if(request('filter') === 'archived')
+                    Archived Patients
+                @else
+                    Active Patients
+                @endif
+            </h3>
             <div class="text-white/80 text-sm">
-                <i class="fas fa-info-circle mr-2"></i>Patients are managed by staff
+                <i class="fas fa-info-circle mr-2"></i>
+                @if(request('filter') === 'archived')
+                    Archived patients can be restored if needed
+                @else
+                    Patients are managed by staff
+                @endif
             </div>
         </div>
     </div>
@@ -99,13 +123,22 @@
                                title="View Appointments">
                                 <i class="fas fa-calendar"></i>
                             </a>
-                            <form action="{{ route('doctor.patients.destroy', $patient) }}" method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn-delete-patient text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Patient">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            @if(request('filter') === 'archived')
+                                <form action="{{ route('doctor.patients.restore', $patient) }}" method="POST" style="display:inline-block;">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition-all duration-200" title="Restore Patient">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('doctor.patients.destroy', $patient) }}" method="POST" style="display:inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" class="btn-delete-patient text-orange-600 hover:text-orange-800 p-2 rounded-lg hover:bg-orange-50 transition-all duration-200" title="Archive Patient">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -150,14 +183,14 @@
     @endif
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Archive Confirmation Modal -->
 <div id="deletePatientModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Delete Patient</h3>
-        <p class="mb-6 text-gray-600">Are you sure you want to delete this patient? This action cannot be undone.</p>
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Archive Patient</h3>
+        <p class="mb-6 text-gray-600">Are you sure you want to archive this patient? You can restore archived patients later if needed.</p>
         <div class="flex justify-center gap-4">
             <button id="cancelDeletePatient" class="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition">Cancel</button>
-            <button id="confirmDeletePatient" class="px-6 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition">Delete</button>
+            <button id="confirmDeletePatient" class="px-6 py-2 rounded-lg bg-orange-600 text-white font-semibold hover:bg-orange-700 transition">Archive</button>
         </div>
     </div>
 </div>

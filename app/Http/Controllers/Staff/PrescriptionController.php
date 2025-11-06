@@ -14,11 +14,31 @@ class PrescriptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $prescriptions = Prescription::with(['patient', 'doctor', 'medications'])
-            ->orderBy('prescription_date', 'desc')
-            ->paginate(10);
+        $query = Prescription::with(['patient', 'doctor', 'medications']);
+
+        // Search by patient name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('patient', function($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                  ->orWhere('last_name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date from
+        if ($request->filled('date_from')) {
+            $query->whereDate('prescription_date', '>=', $request->date_from);
+        }
+
+        $prescriptions = $query->orderBy('prescription_date', 'desc')->paginate(10);
 
         return view('staff.prescriptions.index', compact('prescriptions'));
     }

@@ -40,13 +40,6 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Get recent consultations
-        $recentConsultations = Consultation::where('patient_id', $patient->id)
-            ->with('doctor')
-            ->orderBy('consultation_date', 'desc')
-            ->limit(3)
-            ->get();
-
         // Get recent prescriptions
         $recentPrescriptions = Prescription::where('patient_id', $patient->id)
             ->with('doctor')
@@ -79,17 +72,34 @@ class DashboardController extends Controller
             ->where('status', 'unpaid')
             ->count();
 
+        // Additional stats for new dashboard
+        $todaysAppointments = Appointment::where('patient_id', $patient->id)
+            ->where('appointment_date', now()->toDateString())
+            ->where('status', '!=', 'cancelled')
+            ->count();
+
+        $upcomingAppointmentsCount = Appointment::where('patient_id', $patient->id)
+            ->where('appointment_date', '>', now()->toDateString())
+            ->where('status', '!=', 'cancelled')
+            ->count();
+
+        $pendingResults = MedicalRecord::where('patient_id', $patient->id)
+            ->where('status', 'pending')
+            ->count();
+
         return view('patient.dashboard', compact(
             'upcomingAppointments',
             'recentAppointments',
-            'recentConsultations',
             'recentPrescriptions',
             'recentMedicalRecords',
             'recentInvoices',
             'totalAppointments',
             'pendingAppointments',
             'completedConsultations',
-            'unpaidInvoices'
+            'unpaidInvoices',
+            'todaysAppointments',
+            'upcomingAppointmentsCount',
+            'pendingResults'
         ));
     }
 }

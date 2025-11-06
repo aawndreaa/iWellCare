@@ -40,6 +40,14 @@ class Prescription extends Model
     }
 
     /**
+     * Get the patient record through the user relationship.
+     */
+    public function patientRecord()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id', 'user_id');
+    }
+
+    /**
      * Get the doctor that prescribed the medication.
      */
     public function doctor(): BelongsTo

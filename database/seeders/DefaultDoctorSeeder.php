@@ -27,6 +27,7 @@ class DefaultDoctorSeeder extends Seeder
         $user = User::create([
             'first_name' => 'Augustus Caesar Butch B.',
             'last_name' => 'Bigornia',
+            'full_name' => 'Dr. Augustus Caesar Butch B. Bigornia',
             'email' => 'dr.bigornia@iwellcare.com',
             'username' => 'dr.bigornia',
             'password' => Hash::make('awcmladmin_2014'),

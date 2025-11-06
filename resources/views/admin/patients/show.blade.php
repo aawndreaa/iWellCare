@@ -117,12 +117,12 @@
                     @endif
 
                     @if($patient->medical_history)
-                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                         <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-stethoscope text-blue-600"></i>
-                            <span class="font-semibold text-blue-800">Medical History</span>
+                            <i class="fas fa-lock text-gray-600"></i>
+                            <span class="font-semibold text-gray-800">Medical History</span>
                         </div>
-                        <p class="text-blue-700 text-sm">{{ $patient->medical_history }}</p>
+                        <p class="text-gray-600 text-sm italic">Medical history is only accessible by doctors for privacy reasons.</p>
                     </div>
                     @endif
 

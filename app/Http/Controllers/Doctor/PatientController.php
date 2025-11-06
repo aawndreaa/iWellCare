@@ -14,11 +14,73 @@ class PatientController extends Controller
      */
     public function index()
     {
-        $patients = Patient::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = Patient::with(['user', 'appointments']);
 
-        return view('doctor.patients.index', compact('patients'));
+        // Apply filters
+        if (request('filter') === 'archived') {
+            $query->onlyTrashed(); // Show archived patients
+        }
+
+        // Apply search filter
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('full_name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%')
+                  ->orWhere('contact', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('first_name', 'like', '%' . $search . '%')
+                               ->orWhere('last_name', 'like', '%' . $search . '%')
+                               ->orWhere('email', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+
+        // Apply status filter
+        if (request('status')) {
+            if (request('status') === 'active') {
+                $query->where('is_active', true);
+            } elseif (request('status') === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        // Apply gender filter
+        if (request('gender')) {
+            $query->where('gender', request('gender'));
+        }
+
+        // Apply age group filter
+        if (request('age_group')) {
+            switch (request('age_group')) {
+                case 'child':
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 0 AND 12');
+                    break;
+                case 'teen':
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 13 AND 19');
+                    break;
+                case 'adult':
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 20 AND 64');
+                    break;
+                case 'senior':
+                    $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= 65');
+                    break;
+            }
+        }
+
+        $patients = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Get archived count for display
+        $archivedCount = Patient::onlyTrashed()->count();
+
+        // Get statistics for admin dashboard
+        $activeCount = Patient::where('is_active', true)->count();
+        $newThisMonth = Patient::where('created_at', '>=', now()->startOfMonth())->count();
+        $recentAppointments = \App\Models\Appointment::where('created_at', '>=', now()->subDays(7))->count();
+
+        // Return admin view if route starts with admin
+        $viewName = request()->routeIs('admin.*') ? 'admin.patients.index' : 'doctor.patients.index';
+        return view($viewName, compact('patients', 'archivedCount', 'activeCount', 'newThisMonth', 'recentAppointments'));
     }
 
     /**
@@ -82,7 +144,7 @@ class PatientController extends Controller
     }
 
     /**
-     * Remove the specified patient from storage.
+     * Archive the specified patient.
      */
     public function destroy(Patient $patient)
     {
@@ -90,53 +152,10 @@ class PatientController extends Controller
             // Start transaction
             \DB::beginTransaction();
 
-            // Delete related records first - handle each safely
-            try {
-                $patient->prescriptions()->delete();
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete prescriptions for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            try {
-                $patient->medicalRecords()->delete();
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete medical records for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            try {
-                $patient->consultations()->delete();
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete consultations for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            try {
-                $patient->appointments()->delete();
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete appointments for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            // Try to delete billing records if the relationship exists
-            try {
-                if (method_exists($patient, 'billingRecords')) {
-                    $patient->billingRecords()->delete();
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete billing records for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            // Also try to delete from billing table directly if it exists
-            try {
-                if (\Schema::hasTable('billing')) {
-                    \DB::table('billing')->where('patient_id', $patient->id)->delete();
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to delete billing records directly for patient '.$patient->id.': '.$e->getMessage());
-            }
-
-            // Delete patient record
+            // Archive patient record (soft delete)
             $patient->delete();
 
-            // Delete user account
+            // Archive user account if it exists
             if ($patient->user) {
                 $patient->user->delete();
             }
@@ -144,29 +163,30 @@ class PatientController extends Controller
             // Commit transaction
             \DB::commit();
 
-            // Log the deletion
-            \Log::info('Patient deleted', [
+            // Log the archiving
+            \Log::info('Patient archived', [
                 'patient_id' => $patient->id,
                 'patient_name' => $patient->full_name,
-                'deleted_by' => auth()->user()->full_name,
-                'deleted_at' => now(),
+                'archived_by' => auth()->user()->full_name,
+                'archived_at' => now(),
             ]);
 
             // Return JSON for AJAX, redirect for browser
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Patient deleted successfully',
+                    'message' => 'Patient archived successfully',
                 ]);
             }
 
-            return redirect()->route('doctor.patients.index')->with('success', 'Patient deleted successfully.');
+            $redirectRoute = request()->routeIs('admin.*') ? 'admin.patients.index' : 'doctor.patients.index';
+            return redirect()->route($redirectRoute)->with('success', 'Patient archived successfully.');
 
         } catch (\Exception $e) {
             // Rollback transaction on error
             \DB::rollback();
 
-            \Log::error('Error deleting patient', [
+            \Log::error('Error archiving patient', [
                 'patient_id' => $patient->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -175,11 +195,12 @@ class PatientController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error deleting patient: '.$e->getMessage(),
+                    'message' => 'Error archiving patient: '.$e->getMessage(),
                 ], 500);
             }
 
-            return redirect()->route('doctor.patients.index')->with('error', 'Error deleting patient: '.$e->getMessage());
+            $redirectRoute = request()->routeIs('admin.*') ? 'admin.patients.index' : 'doctor.patients.index';
+            return redirect()->route($redirectRoute)->with('error', 'Error archiving patient: '.$e->getMessage());
         }
     }
 
@@ -196,5 +217,22 @@ class PatientController extends Controller
         ]);
 
         return view('doctor.patients.history', compact('patient'));
+    }
+
+    /**
+     * Restore a soft deleted patient.
+     */
+    public function restore($id)
+    {
+        $patient = Patient::withTrashed()->findOrFail($id);
+        $patient->restore();
+
+        // Restore user account if it exists
+        if ($patient->user) {
+            $patient->user->restore();
+        }
+
+        return redirect()->route('doctor.patients.index', ['filter' => 'archived'])
+            ->with('success', 'Patient restored successfully.');
     }
 }

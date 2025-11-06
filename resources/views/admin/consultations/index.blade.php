@@ -14,7 +14,7 @@
                         <i class="fas fa-stethoscope text-blue-600 text-2xl"></i>
                     </div>
                     <div class="text-gray-500 text-sm font-medium mb-1">Total Consultations</div>
-                    <div class="text-3xl font-bold text-blue-700 mb-2">{{ $consultations->total() }}</div>
+                    <div class="text-3xl font-bold text-blue-700 mb-2">{{ $totalConsultations }}</div>
                     <div class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Active</div>
                 </div>
                 
@@ -23,7 +23,7 @@
                         <i class="fas fa-check-circle text-green-600 text-2xl"></i>
                     </div>
                     <div class="text-gray-500 text-sm font-medium mb-1">Completed</div>
-                    <div class="text-3xl font-bold text-green-700 mb-2">{{ $consultations->where('status', 'completed')->count() }}</div>
+                    <div class="text-3xl font-bold text-green-700 mb-2">{{ $completedCount }}</div>
                     <div class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Done</div>
                 </div>
                 
@@ -32,7 +32,7 @@
                         <i class="fas fa-clock text-yellow-600 text-2xl"></i>
                     </div>
                     <div class="text-gray-500 text-sm font-medium mb-1">In Progress</div>
-                    <div class="text-3xl font-bold text-yellow-700 mb-2">{{ $consultations->where('status', 'in_progress')->count() }}</div>
+                    <div class="text-3xl font-bold text-yellow-700 mb-2">{{ $inProgressCount }}</div>
                     <div class="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Pending</div>
                 </div>
                 
@@ -41,8 +41,45 @@
                         <i class="fas fa-calendar text-purple-600 text-2xl"></i>
                     </div>
                     <div class="text-gray-500 text-sm font-medium mb-1">Today</div>
-                    <div class="text-3xl font-bold text-purple-700 mb-2">{{ $consultations->where('consultation_date', today())->count() }}</div>
+                    <div class="text-3xl font-bold text-purple-700 mb-2">{{ $todayCount }}</div>
                     <div class="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Today</div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card mb-6">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Consultation Management</h3>
+                            <p class="mt-1 max-w-2xl text-sm text-gray-500">Search and filter consultations</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="{{ route('admin.consultations.create') }}" class="btn btn-primary flex items-center gap-2">
+                                <i class="fas fa-plus"></i>
+                                <span>New Consultation</span>
+                            </a>
+                        </div>
+                    </div>
+                    <form id="filterForm" method="GET" action="{{ route('admin.consultations.index') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-sm mb-2">Search</label>
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search" name="search" class="form-input w-full pl-10"
+                                        value="{{ request('search') }}" placeholder="Patient name, complaint...">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-sm mb-2">Status</label>
+                            <select id="status" name="status" class="form-input w-full">
+                                <option value="">All Status</option>
+                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -52,20 +89,6 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">All Consultations</h3>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-search text-gray-400"></i>
-                                </div>
-                                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="searchInput" placeholder="Search consultations...">
-                            </div>
-                            <div class="flex gap-3">
-                                <a href="{{ route('admin.consultations.create') }}" class="btn btn-primary flex items-center gap-2">
-                                    <i class="fas fa-plus"></i>
-                                    <span>New Consultation</span>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,22 +194,30 @@
 
 @push('scripts')
 <script>
+// Auto-submit form on filter change
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const tableRows = document.querySelectorAll('tbody tr');
-        
-        tableRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
+    const filters = ['status'];
+
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
     });
+
+    // For search input, add input event listener with debounce
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 500);
+        });
+    }
 });
 </script>
 @endpush

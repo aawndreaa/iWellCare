@@ -59,6 +59,27 @@
     </div>
 </div>
 
+<!-- Filter Section -->
+<div class="bg-white shadow-lg rounded-xl p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-search text-blue-500"></i> Filter Appointments
+    </h3>
+    <form method="GET" action="" class="flex items-center gap-4">
+        <div>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="archived" value="1" {{ request('archived') ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <span class="text-gray-700 font-semibold text-sm">Show Archived</span>
+            </label>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2">
+            <i class="fas fa-search"></i> Apply Filter
+        </button>
+        <a href="{{ route('doctor.appointments.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors flex items-center gap-2">
+            <i class="fas fa-undo"></i> Reset
+        </a>
+    </form>
+</div>
+
 <!-- Appointments Table -->
 <div class="table-container">
     <div class="table-header">
@@ -111,26 +132,45 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center space-x-2">
-                            <a href="{{ route('doctor.appointments.show', $appointment) }}" 
-                               class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-all duration-200" 
+                            <a href="{{ route('doctor.appointments.show', $appointment) }}"
+                               class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
                                title="View Appointment Details">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            @if($appointment->status === 'pending')
-                            <button type="button" 
-                                    class="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition-all duration-200" 
-                                    title="Confirm Appointment"
-                                    onclick="showConfirmModal({{ $appointment->id }}, '{{ $appointment->patient->full_name ?? 'Unknown Patient' }}', '{{ $appointment->appointment_date->format('M d, Y') }}')">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            @endif
-                            @if($appointment->status !== 'cancelled')
-                            <button type="button" 
-                                    class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" 
-                                    title="Cancel Appointment"
-                                    onclick="showCancelModal({{ $appointment->id }}, '{{ $appointment->patient->full_name ?? 'Unknown Patient' }}', '{{ $appointment->appointment_date->format('M d, Y') }}')">
-                                <i class="fas fa-times"></i>
-                            </button>
+                            @if(!$appointment->is_archived)
+                                @if($appointment->status === 'pending')
+                                <button type="button"
+                                        class="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition-all duration-200"
+                                        title="Confirm Appointment"
+                                        onclick="showConfirmModal({{ $appointment->id }}, '{{ $appointment->patient->full_name ?? 'Unknown Patient' }}', '{{ $appointment->appointment_date->format('M d, Y') }}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                @endif
+                                @if($appointment->status !== 'cancelled')
+                                <button type="button"
+                                        class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all duration-200"
+                                        title="Cancel Appointment"
+                                        onclick="showCancelModal({{ $appointment->id }}, '{{ $appointment->patient->full_name ?? 'Unknown Patient' }}', '{{ $appointment->appointment_date->format('M d, Y') }}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                @endif
+                                <form method="POST" action="/doctor/appointments/{{ $appointment->id }}/archive" class="inline-block">
+                                    @csrf
+                                    <button type="submit"
+                                            class="text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                                            title="Archive Appointment">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <form method="POST" action="/doctor/appointments/{{ $appointment->id }}/unarchive" class="inline-block">
+                                    @csrf
+                                    <button type="submit"
+                                            class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                                            title="Unarchive Appointment">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </form>
                             @endif
                         </div>
                     </td>

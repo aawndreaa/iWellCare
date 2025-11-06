@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Patient extends Model
 {
-    use HasFactory;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'user_id',

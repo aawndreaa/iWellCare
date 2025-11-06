@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\EmailService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     // Use default primary key configuration; do not override $id as a public property
     protected $primaryKey = 'id';
@@ -30,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'first_name',
         'last_name',
+        'full_name',
         'middle_name',
         'date_of_birth',
         'gender',
@@ -92,6 +94,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
+    /**
      * Get the user's full name
      */
     public function getFullNameAttribute()
@@ -125,6 +138,22 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $address;
+    }
+
+    /**
+     * Check if user is an admin
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is a doctor
+     */
+    public function isDoctor()
+    {
+        return $this->role === 'doctor';
     }
 
     /**

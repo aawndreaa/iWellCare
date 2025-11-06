@@ -418,19 +418,26 @@
             background: #94a3b8;
         }
 
+        /* Sidebar responsive */
+        @media (min-width: 768px) {
+            .sidebar-mobile {
+                display: block !important;
+            }
+        }
+
     </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">
 
     <!-- Navigation -->
-    <nav class="navbar fixed top-0 left-0 right-0 z-50" x-data="{ mobileMenuOpen: false }">
+    <nav class="navbar fixed top-0 left-0 right-0 z-50" x-data="{ mobileMenuOpen: false, sidebarOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center">
                 <!-- Logo and Brand -->
                 <div class="flex items-center">
                     <a href="{{ route('home') }}" class="navbar-brand">
-                        <img src="{{ asset('assets/img/iWellCare-logo.png') }}" alt="iWellCare Logo" class="h-12 w-auto mr-3">
-                        <span class="text-lg">ADULT WELLNESS CLINIC AND MEDICAL LABORATORY</span>
+                        <img src="{{ asset('assets/img/iWellCare-logo.png') }}" alt="iWellCare Logo" class="h-8 md:h-12 w-auto mr-2 md:mr-3">
+                        <span class="text-sm md:text-lg">ADULT WELLNESS CLINIC AND MEDICAL LABORATORY</span>
                     </a>
                 </div>
 
@@ -486,9 +493,15 @@
                 </div>
 
                 <!-- Mobile menu button -->
-                <div class="md:hidden">
+                <div class="md:hidden flex items-center space-x-4">
+                    @auth
+                        <!-- Sidebar toggle for authenticated users -->
+                        <button @click="sidebarOpen = !sidebarOpen" class="text-gray-700 hover:text-primary-600">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    @endauth
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700 hover:text-primary-600">
-                        <i class="fas fa-bars text-xl"></i>
+                        <i class="fas fa-user text-xl"></i>
                     </button>
                 </div>
             </div>
@@ -542,10 +555,12 @@
         @auth
             <!-- Sidebar for authenticated users -->
             <div class="flex min-h-screen">
-                <div class="w-64 bg-white shadow-lg fixed left-0 top-16 z-40 border-r border-gray-200">
+                <!-- Sidebar - Hidden on mobile, visible on desktop, toggleable on mobile -->
+                <div x-show="sidebarOpen" @click.away="sidebarOpen = false" x-transition class="sidebar-mobile w-64 bg-white shadow-lg fixed left-0 top-16 z-40 border-r border-gray-200" style="display: none;">
                     @include('layouts.sidebar')
                 </div>
-                <div class="flex-1 ml-64">
+                <!-- Main content - Full width on mobile, with left margin on desktop -->
+                <div class="flex-1 md:ml-64">
                     <div class="min-h-screen bg-gray-50">
                         <!-- Page Content -->
                         @yield('content')
@@ -562,79 +577,15 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Company Info -->
-                <div>
-                    <h3 class="text-lg font-bold mb-4">ADULT WELLNESS CLINIC AND MEDICAL LABORATORY</h3>
-                    <p class="text-gray-300 text-sm mb-4">
-                        Your trusted partner in healthcare. We provide comprehensive medical services with a focus on patient care and wellness.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-facebook text-lg"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-twitter text-lg"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-instagram text-lg"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition-colors">Home</a></li>
-                        <li><a href="#contact" class="text-gray-300 hover:text-white transition-colors">Contact</a></li>
-                        @guest
-                            <li><a href="{{ route('login') }}" class="text-gray-300 hover:text-white transition-colors">Patient Login</a></li>
-                            <li><a href="{{ route('register') }}" class="text-gray-300 hover:text-white transition-colors">Register</a></li>
-                        @else
-                            <li><a href="{{ route('dashboard') }}" class="text-gray-300 hover:text-white transition-colors">Dashboard</a></li>
-                        @endguest
-                    </ul>
-                </div>
-
-                <!-- Contact Info -->
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Contact Info</h4>
-                    <div class="space-y-3 text-sm text-gray-300">
-                        <div class="flex items-start">
-                            <i class="fas fa-phone mr-3 mt-1 text-blue-400"></i>
-                            <div>
-                                <p class="font-medium">Phone</p>
-                                <p>09352410173</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start">
-                            <i class="fas fa-envelope mr-3 mt-1 text-green-400"></i>
-                            <div>
-                                <p class="font-medium">Email</p>
-                                <p>adultwellnessclinicandm@gmail.com</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start">
-                            <i class="fas fa-map-marker-alt mr-3 mt-1 text-red-400"></i>
-                            <div>
-                                <p class="font-medium">Address</p>
-                                <p>Capitulacion Street, Zone 2<br>Bangued, Abra</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-800 mt-8 pt-6">
-                <div class="flex flex-col md:flex-row justify-between items-center">
-                    <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Adult Wellness Clinic and Medical Laboratory. All rights reserved.</p>
-                    <div class="flex space-x-6 mt-4 md:mt-0">
-                        <a href="{{ route('privacy-policy') }}" class="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a>
-                        <a href="{{ route('terms-of-service') }}" class="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a>
-                    </div>
+    <footer class="bg-gray-100 border-t border-gray-200 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-600 text-sm mb-2 md:mb-0">
+                    &copy; {{ date('Y') }} Adult Wellness Clinic and Medical Laboratory. All rights reserved.
+                </p>
+                <div class="flex space-x-6 text-sm">
+                    <a href="{{ route('privacy-policy') }}" class="text-gray-600 hover:text-blue-600 transition-colors">Privacy Policy</a>
+                    <a href="{{ route('terms-of-service') }}" class="text-gray-600 hover:text-blue-600 transition-colors">Terms of Service</a>
                 </div>
             </div>
         </div>

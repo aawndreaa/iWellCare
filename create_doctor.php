@@ -14,6 +14,7 @@ try {
         [
             'first_name' => 'Augustus Caesar Butch B.',
             'last_name' => 'Bigornia',
+            'full_name' => 'Augustus Caesar Butch B. Bigornia',
             'email' => 'dr.bigornia@iwellcare.com',
             'username' => 'dr.bigornia',
             'password' => Hash::make('awcmladmin_2014'),
@@ -24,6 +25,7 @@ try {
         [
             'first_name' => 'Sarah',
             'last_name' => 'Johnson',
+            'full_name' => 'Sarah Johnson',
             'email' => 'staff@iwellcare.com',
             'username' => 'staff',
             'password' => Hash::make('password123'),

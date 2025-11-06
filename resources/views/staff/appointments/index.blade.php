@@ -55,33 +55,33 @@
         <i class="fas fa-search text-blue-500"></i> Search & Filter
     </div>
     
-    <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+    <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
         <div>
             <label class="block text-gray-700 font-semibold text-sm mb-2">Patient Name</label>
             <div class="relative">
                 <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" name="patient" class="form-input w-full pl-10" value="{{ request('patient') }}" placeholder="Search patient...">
+                <input type="text" name="patient" class="form-input w-full pl-10 auto-filter" value="{{ request('patient') }}" placeholder="Search patient...">
             </div>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold text-sm mb-2">Doctor Name</label>
             <div class="relative">
                 <i class="fas fa-user-md absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" name="doctor" class="form-input w-full pl-10" value="{{ request('doctor') }}" placeholder="Search doctor...">
+                <input type="text" name="doctor" class="form-input w-full pl-10 auto-filter" value="{{ request('doctor') }}" placeholder="Search doctor...">
             </div>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold text-sm mb-2">Appointment Date</label>
             <div class="relative">
                 <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="date" name="date" class="form-input w-full pl-10" value="{{ request('date') }}">
+                <input type="date" name="date" class="form-input w-full pl-10 auto-filter" value="{{ request('date') }}">
             </div>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold text-sm mb-2">Status</label>
             <div class="relative">
                 <i class="fas fa-filter absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <select name="status" class="form-input w-full pl-10">
+                <select name="status" class="form-input w-full pl-10" id="status-filter">
                     <option value="">All Status</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
@@ -89,6 +89,12 @@
                     <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
             </div>
+        </div>
+        <div>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="archived" value="1" {{ request('archived') ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <span class="text-gray-700 font-semibold text-sm">Show Archived</span>
+            </label>
         </div>
         <div class="flex gap-2">
             <button type="submit" class="btn btn-primary flex items-center gap-2">
@@ -199,44 +205,47 @@
                         </td>
                         <td class="py-4 px-6">
                             <div class="flex flex-wrap gap-2">
-                                @if($appointment->status === 'pending')
-                                    <form method="POST" action="/staff/appointments/{{ $appointment->id }}/confirm" class="inline-block">
+                                @if(!$appointment->is_archived)
+                                    @if($appointment->status === 'pending')
+                                        <form method="POST" action="/staff/appointments/{{ $appointment->id }}/confirm" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                                            <i class="fas fa-check mr-1.5"></i> Approve
+                                        </button>
+                                        </form>
+                                        <form method="POST" action="/staff/appointments/{{ $appointment->id }}/decline" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
+                                            <i class="fas fa-times mr-1.5"></i> Decline
+                                        </button>
+                                        </form>
+                                    @elseif($appointment->status === 'confirmed')
+                                        <form method="POST" action="/staff/appointments/{{ $appointment->id }}/complete" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                                            <i class="fas fa-check-double mr-1.5"></i> Complete
+                                        </button>
+                                        </form>
+                                    @endif
+                                    <form method="POST" action="/staff/appointments/{{ $appointment->id }}/archive" class="inline-block">
                                         @csrf
-                                        <button type="submit" 
-                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
-                                        <i class="fas fa-check mr-1.5"></i> Approve
+                                        <button type="submit"
+                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200">
+                                        <i class="fas fa-archive mr-1.5"></i> Archive
                                     </button>
                                     </form>
-                                    <form method="POST" action="/staff/appointments/{{ $appointment->id }}/decline" class="inline-block">
+                                @else
+                                    <form method="POST" action="/staff/appointments/{{ $appointment->id }}/unarchive" class="inline-block">
                                         @csrf
-                                        <button type="submit" 
-                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
-                                        <i class="fas fa-times mr-1.5"></i> Decline
-                                    </button>
-                                    </form>
-                                @elseif($appointment->status === 'confirmed')
-                                    <form method="POST" action="/staff/appointments/{{ $appointment->id }}/complete" class="inline-block">
-                                        @csrf
-                                        <button type="submit" 
+                                        <button type="submit"
                                                 class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                                        <i class="fas fa-check-double mr-1.5"></i> Complete
+                                        <i class="fas fa-undo mr-1.5"></i> Unarchive
                                     </button>
                                     </form>
                                 @endif
-                                <form method="POST" action="/staff/appointments/{{ $appointment->id }}" class="inline-block delete-appointment-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            data-appointment-id="{{ $appointment->id }}"
-                                            data-patient-name="{{ $appointment->patient->first_name ?? '' }} {{ $appointment->patient->last_name ?? '' }}"
-                                            data-appointment-date="{{ $appointment->appointment_date ? $appointment->appointment_date->format('M d, Y') : '' }}"
-                                            data-appointment-time="{{ $appointment->appointment_time ? $appointment->appointment_time->format('h:i A') : '' }}"
-                                            onclick="return false;"
-                                            id="delete-btn-{{ $appointment->id }}"
-                                            class="delete-appointment-btn inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
-                                    <i class="fas fa-trash mr-1.5"></i> Delete
-                                </button>
-                                </form>
                             </div>
                         </td>
                     </tr>
@@ -279,11 +288,11 @@
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Delete Appointment</h3>
         </div>
-        <p class="text-sm text-gray-600 mb-4">Are you sure you want to delete this appointment? This action cannot be undone.</p>
+        <p class="text-sm text-gray-600 mb-4">Are you sure you want to archive this appointment? This action can be undone.</p>
         <div class="bg-gray-50 rounded-lg p-3 mb-4 text-sm text-gray-700" id="delete-summary"></div>
         <div class="flex justify-end gap-3">
             <button type="button" id="cancel-delete" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Cancel</button>
-            <button type="button" id="confirm-delete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Delete</button>
+            <button type="button" id="confirm-delete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Archive</button>
         </div>
     </div>
 </div>
@@ -295,7 +304,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const summary = document.getElementById('delete-summary');
     const cancelBtn = document.getElementById('cancel-delete');
     const confirmBtn = document.getElementById('confirm-delete');
+    const statusFilter = document.getElementById('status-filter');
     let targetForm = null;
+
+    // Auto-submit form when any filter changes
+    function autoSubmitForm() {
+        const form = this.closest('form');
+        if (form) {
+            form.submit();
+        }
+    }
+
+    // Auto-submit for status filter
+    if (statusFilter) {
+        statusFilter.addEventListener('change', autoSubmitForm);
+    }
+
+    // Auto-submit for text inputs and date input (with debounce for text inputs)
+    let debounceTimer;
+    document.querySelectorAll('.auto-filter').forEach(input => {
+        if (input.type === 'date') {
+            input.addEventListener('change', autoSubmitForm);
+        } else {
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(autoSubmitForm.bind(this), 800); // 800ms delay
+            });
+        }
+    });
+
+    // Auto-submit for archived checkbox
+    const archivedCheckbox = document.querySelector('input[name="archived"]');
+    if (archivedCheckbox) {
+        archivedCheckbox.addEventListener('change', autoSubmitForm);
+    }
 
     document.querySelectorAll('.delete-appointment-form .delete-appointment-btn').forEach(btn => {
         btn.addEventListener('click', function () {

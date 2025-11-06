@@ -5,183 +5,212 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Service Invoice</title>
     <style>
+        @page {
+            size: 8.5in 5.5in;
+            margin: 0;
+        }
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 6px;
             line-height: 1.0;
             margin: 0;
-            padding: 1px;
+            padding: 0.15in;
+            width: 8.5in;
+            height: 5.5in;
+            page-break-inside: avoid;
+            box-sizing: border-box;
         }
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2px;
+            margin-bottom: 5px;
         }
         .clinic-info {
-            width: 70%;
+            width: 65%;
         }
         .clinic-name {
             font-size: 8px;
             font-weight: bold;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
         }
         .clinic-address {
-            margin-bottom: 0px;
+            font-size: 6px;
+            margin-bottom: 2px;
+            line-height: 1.1;
         }
         .proprietor {
-            margin-bottom: 0px;
+            font-size: 6px;
+            margin-bottom: 2px;
         }
         .tin-info {
-            margin-bottom: 0px;
+            font-size: 6px;
+            margin-bottom: 2px;
         }
         .invoice-details {
-            width: 25%;
+            width: 32%;
             text-align: right;
         }
         .invoice-title {
             font-size: 8px;
             font-weight: bold;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
         }
         .invoice-number {
             font-size: 7px;
             font-weight: bold;
             color: #d32f2f;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
         }
         .field-row {
             display: flex;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
         }
         .field-label {
-            width: 60px;
+            width: 55px;
             font-weight: bold;
+            font-size: 6px;
         }
         .field-value {
             flex: 1;
             border-bottom: 1px solid #000;
-            min-height: 6px;
+            min-height: 5px;
+            font-size: 6px;
+            padding: 1px 0;
         }
         .customer-section {
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .customer-title {
             font-weight: bold;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
+            font-size: 7px;
         }
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
+            table-layout: fixed;
         }
         .items-table th {
             border: 1px solid #000;
-            padding: 0px;
+            padding: 2px;
             text-align: center;
             font-weight: bold;
             background-color: #f5f5f5;
+            font-size: 6px;
+            word-wrap: break-word;
         }
         .items-table td {
             border: 1px solid #000;
-            padding: 0px;
+            padding: 2px;
             text-align: center;
             height: 8px;
+            font-size: 6px;
+            word-wrap: break-word;
+            overflow: hidden;
         }
-        .qty-col { width: 10%; }
-        .articles-col { width: 50%; }
-        .unit-col { width: 20%; }
-        .amount-col { width: 20%; }
+        .qty-col { width: 15%; }
+        .articles-col { width: 40%; }
+        .unit-col { width: 22%; }
+        .amount-col { width: 23%; }
         .footer-section {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 3px;
         }
         .payment-methods {
-            width: 50%;
+            width: 48%;
         }
         .payment-title {
             font-weight: bold;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
+            font-size: 7px;
         }
         .checkbox-item {
-            margin-bottom: 0px;
+            margin-bottom: 2px;
+            font-size: 6px;
         }
         .checkbox-item input[type="checkbox"] {
-            margin-right: 0px;
+            margin-right: 2px;
+            transform: scale(0.8);
         }
         .check-details {
-            margin-top: 1px;
+            margin-top: 2px;
         }
         .check-row {
             display: flex;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
         }
         .check-label {
-            width: 60px;
+            width: 55px;
+            font-size: 6px;
         }
         .check-value {
             flex: 1;
             border-bottom: 1px solid #000;
             min-height: 4px;
+            font-size: 6px;
+            padding: 1px 0;
         }
         .summary-section {
-            width: 45%;
+            width: 48%;
         }
         .summary-title {
             font-weight: bold;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
+            font-size: 7px;
         }
         .summary-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
         }
         .summary-label {
             font-weight: bold;
+            font-size: 6px;
         }
         .summary-value {
             border-bottom: 1px solid #000;
-            min-width: 60px;
+            min-width: 50px;
             text-align: right;
+            font-size: 6px;
+            padding: 1px 0;
         }
         .total-row {
             font-weight: bold;
             font-size: 8px;
         }
         .signature-section {
-            margin-top: 1px;
+            margin-top: 3px;
             text-align: center;
         }
         .signature-line {
             border-bottom: 1px solid #000;
-            width: 120px;
-            margin: 0 auto 0px;
+            width: 80px;
+            margin: 0 auto 2px;
         }
         .tax-info {
-            margin-top: 1px;
+            margin-top: 2px;
             text-align: center;
-            font-size: 6px;
+            font-size: 5px;
         }
         .printer-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1px;
-            font-size: 4px;
+            margin-top: 2px;
+            font-size: 3px;
+            table-layout: fixed;
         }
         .printer-table th,
         .printer-table td {
             border: 1px solid #000;
-            padding: 0px;
+            padding: 1px;
             text-align: center;
+            word-wrap: break-word;
         }
         .printer-table th {
             background-color: #f5f5f5;
             font-weight: bold;
-        }
-
-        /* Page break control */
-        .page-break {
-            page-break-before: avoid;
-            page-break-after: avoid;
         }
 
         /* Ensure content fits on one page */
@@ -192,15 +221,16 @@
 </head>
 <body>
     <!-- Header Section -->
-    <div class="header page-break">
+    <div class="header">
         <div class="clinic-info">
+            <div class="clinic-name">ADULT WELLNESS CLINIC & MEDICAL LABORATORY</div>
+            <div class="clinic-address">40 Capitulacion St., Zone 2, Pob. (Consiliman), 2500 Bangued (Capital), Abra, Philippines</div>
+            <div class="proprietor">AUGUSTUS CAESAR BUTCH B. BIGORNIA - Prop.</div>
+            <div class="tin-info">Non-VAT Reg. TIN: 248-390-356-00000</div>
         </div>
         <div class="invoice-details">
             <div class="invoice-title">SERVICE INVOICE</div>
-            <div class="field-row">
-                <div class="field-label">TIN:</div>
-                <div class="field-value"></div>
-            </div>
+            <div class="invoice-number">No. {{ $invoiceNumber ?? $invoice->id }}</div>
             <div class="field-row">
                 <div class="field-label">DATE:</div>
                 <div class="field-value">{{ $date }}</div>
@@ -209,16 +239,21 @@
     </div>
 
     <!-- Customer Information -->
-    <div class="customer-section page-break">
+    <div class="customer-section">
         <div class="customer-title">SOLD TO:</div>
         <div class="field-row">
-            <div class="field-label"></div>
+            <div class="field-label">NAME:</div>
             <div class="field-value">{{ $invoice->patient->first_name }} {{ $invoice->patient->last_name }}</div>
         </div>
         <div class="customer-title">ADDRESS:</div>
         <div class="field-row">
             <div class="field-label"></div>
             <div class="field-value">{{ $invoice->patient->address ?? 'N/A' }}</div>
+        </div>
+        <div class="customer-title">TIN:</div>
+        <div class="field-row">
+            <div class="field-label"></div>
+            <div class="field-value"></div>
         </div>
         <div class="customer-title">SC/PWD/PNSTM/Solo Parent ID No.:</div>
         <div class="field-row">
@@ -233,7 +268,7 @@
     </div>
 
     <!-- Items Table -->
-    <table class="items-table page-break">
+    <table class="items-table">
         <thead>
             <tr>
                 <th class="qty-col">QTY</th>
@@ -306,13 +341,13 @@
             @foreach($items as $item)
             <tr>
                 <td>{{ $item['qty'] }}</td>
-                <td>{{ $item['description'] }}</td>
+                <td style="text-align: left; padding-left: 3px;">{{ $item['description'] }}</td>
                 <td>₱{{ number_format($item['unit_cost'], 2) }}</td>
                 <td>₱{{ number_format($item['amount'], 2) }}</td>
             </tr>
             @endforeach
 
-            @for($i = count($items); $i < 10; $i++)
+            @for($i = count($items); $i < 8; $i++)
             <tr>
                 <td></td>
                 <td></td>
@@ -324,7 +359,7 @@
     </table>
 
     <!-- Footer Section -->
-    <div class="footer-section page-break">
+    <div class="footer-section">
         <div class="payment-methods">
             <div class="payment-title">Cash Check Credit</div>
             <div class="checkbox-item">
@@ -354,23 +389,23 @@
         <div class="summary-section">
             <div class="summary-row">
                 <div class="summary-label">TOTAL SALES</div>
-                <div class="summary-value">_______________</div>
+                <div class="summary-value">₱{{ number_format($totalAmount, 2) }}</div>
             </div>
             <div class="summary-row">
                 <div class="summary-label">LESS: SC/PWD/NAAC/SP DISC.</div>
-                <div class="summary-value">_______________</div>
+                <div class="summary-value">₱0.00</div>
             </div>
             <div class="summary-row">
                 <div class="summary-label">TOTAL DUE:</div>
-                <div class="summary-value">_______________</div>
+                <div class="summary-value">₱{{ number_format($totalAmount, 2) }}</div>
             </div>
             <div class="summary-row">
                 <div class="summary-label">LESS: WITHHOLDING</div>
-                <div class="summary-value">_______________</div>
+                <div class="summary-value">₱0.00</div>
             </div>
             <div class="summary-row total-row">
                 <div class="summary-label">TOTAL AMOUNT DUE :</div>
-                <div class="summary-value">_______________</div>
+                <div class="summary-value">₱{{ number_format($totalAmount, 2) }}</div>
             </div>
         </div>
     </div>

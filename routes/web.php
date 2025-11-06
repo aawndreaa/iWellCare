@@ -20,6 +20,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Address API routes
+Route::prefix('api')->name('api.')->group(function () {
+    Route::get('/regions', [App\Http\Controllers\AddressController::class, 'getRegions'])->name('regions');
+    Route::get('/provinces', [App\Http\Controllers\AddressController::class, 'getProvinces'])->name('provinces');
+    Route::get('/municipalities', [App\Http\Controllers\AddressController::class, 'getMunicipalities'])->name('municipalities');
+    Route::get('/barangays', [App\Http\Controllers\AddressController::class, 'getBarangays'])->name('barangays');
+});
+
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -74,11 +82,8 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->group(function () {
 // Password Reset routes
 Route::get('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-Route::post('/password/resend-otp', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'resendOtp'])->name('password.resend-otp');
-Route::get('/reset-password', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('/reset-password/verify-otp', [App\Http\Controllers\Auth\ResetPasswordController::class, 'verifyOtp'])->name('password.verify-otp');
+Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
-Route::post('/password/check-verification', [App\Http\Controllers\Auth\ResetPasswordController::class, 'checkVerificationStatus'])->name('password.check-verification');
 
 // Email Verification routes (for Laravel's default verification system)
 Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\Auth\VerificationController::class, 'verify'])->name('verification.verify');
@@ -122,6 +127,7 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('doctor')->na
     })->name('staff.test');
     Route::resource('staff', \App\Http\Controllers\Doctor\StaffController::class);
     Route::patch('/staff/{id}/toggle-status', [\App\Http\Controllers\Doctor\StaffController::class, 'toggleStatus'])->name('staff.toggle-status');
+    Route::post('/staff/{id}/restore', [\App\Http\Controllers\Doctor\StaffController::class, 'restore'])->name('staff.restore');
     Route::resource('patients', \App\Http\Controllers\Doctor\PatientController::class)->except(['create', 'store']);
 
     // Appointment management (read-only for doctors)
@@ -136,6 +142,8 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('doctor')->na
         return redirect()->route('doctor.appointments.index')->with('error', 'Please use the cancel button on the appointments page. Direct URL access is not allowed.');
     })->name('appointments.cancel.get');
     Route::post('/appointments/{appointment}/complete', [\App\Http\Controllers\Doctor\AppointmentController::class, 'complete'])->name('appointments.complete');
+    Route::post('/appointments/{appointment}/archive', [\App\Http\Controllers\Doctor\AppointmentController::class, 'archive'])->name('appointments.archive');
+    Route::post('/appointments/{appointment}/unarchive', [\App\Http\Controllers\Doctor\AppointmentController::class, 'unarchive'])->name('appointments.unarchive');
     Route::get('/appointments/by-date', [\App\Http\Controllers\Doctor\AppointmentController::class, 'getAppointmentsByDate'])->name('appointments.by-date');
     Route::get('/appointments/stats', [\App\Http\Controllers\Doctor\AppointmentController::class, 'getStats'])->name('appointments.stats');
     Route::get('/appointments/cancelled', [\App\Http\Controllers\Doctor\AppointmentController::class, 'getCancelledAppointments'])->name('appointments.cancelled');
@@ -164,6 +172,7 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('doctor')->na
     // Patients
     Route::resource('patients', \App\Http\Controllers\Doctor\PatientController::class)->except(['create', 'store']);
     Route::get('/patients/{patient}/history', [\App\Http\Controllers\Doctor\PatientController::class, 'history'])->name('patients.history');
+    Route::post('/patients/{id}/restore', [\App\Http\Controllers\Doctor\PatientController::class, 'restore'])->name('patients.restore');
 
     // Inventory management (admin functions)
     Route::resource('inventory', \App\Http\Controllers\Doctor\InventoryController::class);
@@ -241,12 +250,14 @@ Route::middleware(['auth', 'role:staff', 'prevent.back'])->prefix('staff')->name
     Route::post('/appointments/{appointment}/confirm', [\App\Http\Controllers\Staff\AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::post('/appointments/{appointment}/decline', [\App\Http\Controllers\Staff\AppointmentController::class, 'decline'])->name('appointments.decline');
     Route::post('/appointments/{appointment}/complete', [\App\Http\Controllers\Staff\AppointmentController::class, 'complete'])->name('appointments.complete');
+    Route::post('/appointments/{appointment}/archive', [\App\Http\Controllers\Staff\AppointmentController::class, 'archive'])->name('appointments.archive');
+    Route::post('/appointments/{appointment}/unarchive', [\App\Http\Controllers\Staff\AppointmentController::class, 'unarchive'])->name('appointments.unarchive');
     Route::get('/appointments/{appointment}/reschedule', [\App\Http\Controllers\Staff\AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
     Route::post('/appointments/{appointment}/reschedule', [\App\Http\Controllers\Staff\AppointmentController::class, 'updateReschedule'])->name('appointments.update-reschedule');
 
     // Consultations
+    Route::get('/fetch-patient-data', [\App\Http\Controllers\Staff\ConsultationController::class, 'fetchPatientData'])->name('consultations.fetch-patient-data');
     Route::resource('consultations', \App\Http\Controllers\Staff\ConsultationController::class);
-    Route::get('/consultations/fetch-patient-data', [\App\Http\Controllers\Staff\ConsultationController::class, 'fetchPatientData'])->name('consultations.fetch-patient-data');
 
     // Invoice management (existing names)
     Route::get('/invoice', [\App\Http\Controllers\Staff\BillingController::class, 'index'])->name('invoice.index');
@@ -256,7 +267,7 @@ Route::middleware(['auth', 'role:staff', 'prevent.back'])->prefix('staff')->name
     Route::post('/invoice/{id}/mark-as-paid', [\App\Http\Controllers\Staff\BillingController::class, 'markAsPaid'])->name('invoice.mark-as-paid');
     Route::delete('/invoice/{id}', [\App\Http\Controllers\Staff\BillingController::class, 'destroy'])->name('invoice.destroy');
 
-    // Billing route name aliases for views expecting staff.billing.*
+    // Invoice route name aliases for views expecting staff.billing.*
     Route::prefix('billing')->name('billing.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Staff\BillingController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Staff\BillingController::class, 'create'])->name('create');
@@ -276,14 +287,12 @@ Route::middleware(['auth', 'role:staff', 'prevent.back'])->prefix('staff')->name
     // Inventory management
     Route::resource('inventory', \App\Http\Controllers\Staff\InventoryController::class);
 
-    // Prescriptions
-    Route::resource('prescriptions', \App\Http\Controllers\Staff\PrescriptionController::class);
-
     // Doctor Availability Management
     Route::resource('doctor-availability', \App\Http\Controllers\Staff\DoctorAvailabilityController::class);
     Route::post('/doctor-availability/{id}/toggle-status', [\App\Http\Controllers\Staff\DoctorAvailabilityController::class, 'toggleStatus'])->name('doctor-availability.toggle-status');
     Route::get('/doctor-availability/get-availability', [\App\Http\Controllers\Staff\DoctorAvailabilityController::class, 'getAvailability'])->name('doctor-availability.get-availability');
     Route::post('/doctor-availability/bulk-update', [\App\Http\Controllers\Staff\DoctorAvailabilityController::class, 'bulkUpdate'])->name('doctor-availability.bulk-update');
+    Route::post('/doctor-availability/{doctor}/set-available', [\App\Http\Controllers\Doctor\AvailabilityController::class, 'setAvailable'])->name('doctor-availability.set-available');
 
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('profile.index');
@@ -302,12 +311,14 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('admin')->nam
     // Team Management (Staff)
     Route::resource('staff', \App\Http\Controllers\Admin\StaffController::class);
     Route::patch('/staff/{staff}/toggle-status', [\App\Http\Controllers\Admin\StaffController::class, 'toggleStatus'])->name('staff.toggle-status');
+    Route::post('/staff/{id}/restore', [\App\Http\Controllers\Admin\StaffController::class, 'restore'])->name('staff.restore');
     // Accept POST as well to avoid MethodNotAllowed if method spoofing fails on some clients
     Route::post('/staff/{staff}/toggle-status', [\App\Http\Controllers\Admin\StaffController::class, 'toggleStatus']);
 
     // Use Doctor controllers for consistency (no duplication)
     Route::resource('patients', \App\Http\Controllers\Doctor\PatientController::class)->except(['create', 'store']);
     Route::get('/patients/{patient}/history', [\App\Http\Controllers\Doctor\PatientController::class, 'history'])->name('patients.history');
+    Route::post('/patients/{id}/restore', [\App\Http\Controllers\Doctor\PatientController::class, 'restore'])->name('patients.restore');
 
     Route::get('/appointments', [\App\Http\Controllers\Doctor\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/{appointment}', [\App\Http\Controllers\Doctor\AppointmentController::class, 'show'])->name('appointments.show');
@@ -319,9 +330,16 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('admin')->nam
     Route::get('/appointments/cancelled', [\App\Http\Controllers\Doctor\AppointmentController::class, 'getCancelledAppointments'])->name('appointments.cancelled');
 
     Route::resource('consultations', \App\Http\Controllers\Doctor\ConsultationController::class);
-    Route::resource('prescriptions', \App\Http\Controllers\Doctor\PrescriptionController::class);
-    Route::post('/prescriptions/{prescription}/complete', [\App\Http\Controllers\Doctor\PrescriptionController::class, 'complete'])->name('prescriptions.complete');
-    Route::post('/prescriptions/{prescription}/cancel', [\App\Http\Controllers\Doctor\PrescriptionController::class, 'cancel'])->name('prescriptions.cancel');
+    Route::get('/consultations/fetch-patient-data', [\App\Http\Controllers\Doctor\ConsultationController::class, 'fetchPatientData'])->name('consultations.fetch-patient-data');
+    Route::get('/consultations/fetch-patients-by-date', [\App\Http\Controllers\Doctor\ConsultationController::class, 'fetchPatientsByDate'])->name('consultations.fetch-patients-by-date');
+    Route::get('/consultations/{consultation}/physical-exam', [\App\Http\Controllers\Doctor\ConsultationController::class, 'physicalExam'])->name('consultations.physical-exam');
+    Route::post('/consultations/{consultation}/physical-exam', [\App\Http\Controllers\Doctor\ConsultationController::class, 'storePhysicalExam'])->name('consultations.store-physical-exam');
+    Route::get('/consultations/{consultation}/diagnosis', [\App\Http\Controllers\Doctor\ConsultationController::class, 'diagnosis'])->name('consultations.diagnosis');
+    Route::post('/consultations/{consultation}/diagnosis', [\App\Http\Controllers\Doctor\ConsultationController::class, 'storeDiagnosis'])->name('consultations.store-diagnosis');
+    Route::post('/consultations/{consultation}/complete', [\App\Http\Controllers\Doctor\ConsultationController::class, 'complete'])->name('consultations.complete');
+    
+    // Prescriptions (Admin)
+    Route::resource('prescriptions', \App\Http\Controllers\Admin\PrescriptionController::class);
 
     // Reports (using doctor report controller)
     Route::get('/reports', [\App\Http\Controllers\Doctor\ReportController::class, 'index'])->name('reports.index');
@@ -356,7 +374,7 @@ Route::middleware(['auth', 'role:doctor', 'prevent.back'])->prefix('admin')->nam
 });
 
 Route::middleware(['auth', 'prevent.back'])->prefix('api')->name('api.')->group(function () {
-    Route::get('/doctors/available', [\App\Http\Controllers\Api\DoctorController::class, 'available'])->name('doctors.available');
+    Route::get('/doctors/available', [\App\Http\Controllers\Api\DoctorController::class, 'available'])->name('doctors.available')->withoutMiddleware(['auth', 'prevent.back']);
     Route::get('/appointments/calendar', [\App\Http\Controllers\Api\AppointmentController::class, 'calendar'])->name('appointments.calendar');
     Route::get('/patients/search', [\App\Http\Controllers\Api\PatientController::class, 'search'])->name('patients.search');
     Route::get('/medications/search', [\App\Http\Controllers\Api\MedicationController::class, 'search'])->name('medications.search');

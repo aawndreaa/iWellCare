@@ -66,18 +66,18 @@
             </div>
         </div>
         
-        <form method="GET" action="{{ route('staff.patients.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Search</label>
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" name="search" class="form-input w-full pl-10" 
+                    <input type="text" id="search" name="search" class="form-input w-full pl-10"
                            value="{{ request('search') }}" placeholder="Name, email, or phone">
                 </div>
             </div>
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Status</label>
-                <select name="status" class="form-input w-full">
+                <select id="status" name="status" class="form-input w-full">
                     <option value="">All Status</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -85,7 +85,7 @@
             </div>
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Gender</label>
-                <select name="gender" class="form-input w-full">
+                <select id="gender" name="gender" class="form-input w-full">
                     <option value="">All Genders</option>
                     <option value="male" {{ request('gender') === 'male' ? 'selected' : '' }}>Male</option>
                     <option value="female" {{ request('gender') === 'female' ? 'selected' : '' }}>Female</option>
@@ -94,7 +94,7 @@
             </div>
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Age Group</label>
-                <select name="age_group" class="form-input w-full">
+                <select id="age_group" name="age_group" class="form-input w-full">
                     <option value="">All Ages</option>
                     <option value="child" {{ request('age_group') === 'child' ? 'selected' : '' }}>Child (0-12)</option>
                     <option value="teen" {{ request('age_group') === 'teen' ? 'selected' : '' }}>Teen (13-19)</option>
@@ -103,14 +103,11 @@
                 </select>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="btn btn-primary flex items-center gap-2">
-                    <i class="fas fa-search"></i> Search
-                </button>
                 <a href="{{ route('staff.patients.index') }}" class="btn btn-secondary flex items-center gap-2">
                     <i class="fas fa-undo"></i> Reset
                 </a>
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Patients Table -->
@@ -133,8 +130,7 @@
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Contact Info</th>
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Demographics</th>
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Medical Info</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Last Visit</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Status</th>
+                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Date of Appointment</th>
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -219,17 +215,6 @@
                             @endif
                         </td>
                         <td class="py-4 px-6">
-                            @if($patient->is_active)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <i class="fas fa-check-circle mr-1 text-[8px]"></i> Active
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-times-circle mr-1 text-[8px]"></i> Inactive
-                                </span>
-                            @endif
-                        </td>
-                        <td class="py-4 px-6">
                             <div class="flex flex-wrap gap-2">
                                 <a href="{{ route('staff.patients.show', $patient) }}" 
                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors duration-200">
@@ -248,15 +233,15 @@
                                     <i class="fas fa-history mr-1.5"></i> History
                                 </button>
                                 <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-red-600 bg-red-100 hover:bg-red-200 transition-colors duration-200"
-                                        onclick="deletePatient({{ $patient->id }})">
-                                    <i class="fas fa-trash mr-1.5"></i> Delete
+                                        onclick="archivePatient({{ $patient->id }})">
+                                    <i class="fas fa-archive mr-1.5"></i> Archive
                                 </button>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="py-8 text-center text-gray-400">
+                        <td colspan="6" class="py-8 text-center text-gray-400">
                             <div class="flex flex-col items-center gap-2">
                                 <i class="fas fa-users text-4xl text-gray-300"></i>
                                 <div class="text-lg font-medium">No patients found</div>
@@ -346,10 +331,10 @@ function closeHistoryModal() {
     }, 200);
 }
 
-function deletePatient(patientId) {
-    if (confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
-        // Implement delete functionality
-        console.log('Deleting patient:', patientId);
+function archivePatient(patientId) {
+    if (confirm('Are you sure you want to archive this patient? This action can be undone.')) {
+        // Implement archive functionality
+        console.log('Archiving patient:', patientId);
     }
 }
 
@@ -365,6 +350,50 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeHistoryModal();
     }
+});
+
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const filters = ['search', 'status', 'gender', 'age_group'];
+
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                // Build query string from current filter values
+                const params = new URLSearchParams(window.location.search);
+
+                // Update the changed filter
+                if (this.value) {
+                    params.set(this.name, this.value);
+                } else {
+                    params.delete(this.name);
+                }
+
+                // Navigate to the new URL
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.location.href = newUrl;
+            });
+
+            // For search input, add input event listener with debounce
+            if (filterId === 'search') {
+                let debounceTimer;
+                element.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const params = new URLSearchParams(window.location.search);
+                        if (this.value.trim()) {
+                            params.set(this.name, this.value.trim());
+                        } else {
+                            params.delete(this.name);
+                        }
+                        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                        window.location.href = newUrl;
+                    }, 300); // Reduced to 300ms for faster response
+                });
+            }
+        }
+    });
 });
 </script>
 @endsection 

@@ -68,26 +68,18 @@
             </div>
         </div>
         
-        <form method="GET" action="{{ route('admin.patients.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+        <form id="filterForm" method="GET" action="{{ route('admin.patients.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Search</label>
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" name="search" class="form-input w-full pl-10" 
-                           value="{{ request('search') }}" placeholder="Name, email, or phone">
+                    <input type="text" id="search" name="search" class="form-input w-full pl-10"
+                            value="{{ request('search') }}" placeholder="Name, email, or phone">
                 </div>
             </div>
             <div>
-                <label class="block text-gray-700 font-semibold text-sm mb-2">Status</label>
-                <select name="status" class="form-input w-full">
-                    <option value="">All Status</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
-            </div>
-            <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Gender</label>
-                <select name="gender" class="form-input w-full">
+                <select id="gender" name="gender" class="form-input w-full">
                     <option value="">All Genders</option>
                     <option value="male" {{ request('gender') === 'male' ? 'selected' : '' }}>Male</option>
                     <option value="female" {{ request('gender') === 'female' ? 'selected' : '' }}>Female</option>
@@ -96,7 +88,7 @@
             </div>
             <div>
                 <label class="block text-gray-700 font-semibold text-sm mb-2">Age Group</label>
-                <select name="age_group" class="form-input w-full">
+                <select id="age_group" name="age_group" class="form-input w-full">
                     <option value="">All Ages</option>
                     <option value="child" {{ request('age_group') === 'child' ? 'selected' : '' }}>Child (0-12)</option>
                     <option value="teen" {{ request('age_group') === 'teen' ? 'selected' : '' }}>Teen (13-19)</option>
@@ -105,9 +97,6 @@
                 </select>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="btn btn-primary flex items-center gap-2">
-                    <i class="fas fa-search"></i> Search
-                </button>
                 <a href="{{ route('admin.patients.index') }}" class="btn btn-secondary flex items-center gap-2">
                     <i class="fas fa-undo"></i> Reset
                 </a>
@@ -132,11 +121,6 @@
                 <thead>
                     <tr class="text-left text-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Patient</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Contact Info</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Demographics</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Medical Info</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Last Visit</th>
-                        <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Status</th>
                         <th class="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -145,91 +129,34 @@
                     <tr class="hover:bg-blue-50 transition-colors duration-200">
                         <td class="py-4 px-6">
                             <div class="flex items-center gap-3">
-                                @if($patient->profile_photo)
-                                    <img src="{{ asset('storage/' . $patient->profile_photo) }}" 
+                                @if($patient->user && $patient->user->profile_photo)
+                                    <img src="{{ asset('storage/' . $patient->user->profile_photo) }}" 
                                          class="w-10 h-10 rounded-full object-cover" alt="Profile">
                                 @else
                                     <span class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-600 font-bold text-lg">
-                                        {{ strtoupper(substr($patient->first_name ?? 'U', 0, 1)) }}
+                                        {{ strtoupper(substr(($patient->user ? $patient->user->first_name : $patient->first_name) ?? 'U', 0, 1)) }}
                                     </span>
                                 @endif
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-gray-900 truncate">{{ $patient->first_name ?? 'N/A' }} {{ $patient->last_name ?? '' }}</div>
-                                    <div class="text-xs text-gray-500 truncate">ID: {{ $patient->id }}</div>
+                                    <div class="font-medium text-gray-900 truncate">
+                                        @if($patient->user)
+                                            {{ $patient->user->first_name ?? '' }} {{ $patient->user->last_name ?? '' }}
+                                        @else
+                                            {{ $patient->first_name ?? 'N/A' }} {{ $patient->last_name ?? '' }}
+                                        @endif
+                                    </div>
+                                    <div class="text-xs text-gray-500 truncate">
+                                        @if($patient->appointments && $patient->appointments->count() > 0)
+                                            @php
+                                                $lastAppointment = $patient->appointments->sortByDesc('appointment_date')->first();
+                                            @endphp
+                                            Date of Appointment: {{ $lastAppointment->appointment_date->format('M d, Y') }}
+                                        @else
+                                            No appointments yet
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        <td class="py-4 px-6">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-envelope text-gray-400 text-xs"></i>
-                                    <span class="text-sm text-gray-900">{{ $patient->email ?? 'N/A' }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-phone text-gray-400 text-xs"></i>
-                                    <span class="text-sm text-gray-900">{{ $patient->contact ?? 'No phone' }}</span>
-                                </div>
-                                @if($patient->address)
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-map-marker-alt text-gray-400 text-xs"></i>
-                                    <span class="text-sm text-gray-900">{{ Str::limit($patient->address, 30) }}</span>
-                                </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="py-4 px-6">
-                            <div class="space-y-1">
-                                <div class="text-sm font-medium text-gray-900">{{ $patient->age ?? 'N/A' }} years old</div>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    {{ ucfirst($patient->gender ?? 'N/A') }}
-                                </span>
-                                @if($patient->date_of_birth)
-                                <div class="text-xs text-gray-500">{{ $patient->date_of_birth->format('M d, Y') }}</div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="py-4 px-6">
-                            <div class="space-y-1">
-                                @if($patient->blood_type)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    {{ $patient->blood_type }}
-                                </span>
-                                @endif
-                                @if($patient->allergies)
-                                <div class="text-xs text-yellow-600 flex items-center gap-1">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    {{ Str::limit($patient->allergies, 20) }}
-                                </div>
-                                @endif
-                                @if($patient->medical_history)
-                                <div class="text-xs text-blue-600 flex items-center gap-1">
-                                    <i class="fas fa-stethoscope"></i>
-                                    {{ Str::limit($patient->medical_history, 20) }}
-                                </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="py-4 px-6">
-                            @if($patient->appointments->count() > 0)
-                                @php
-                                    $lastAppointment = $patient->appointments->sortByDesc('appointment_date')->first();
-                                @endphp
-                                <div class="text-sm font-medium text-gray-900">{{ $lastAppointment->appointment_date->format('M d, Y') }}</div>
-                                <div class="text-xs text-gray-500">{{ $lastAppointment->appointment_date->diffForHumans() }}</div>
-                            @else
-                                <span class="text-xs text-gray-400">No visits yet</span>
-                            @endif
-                        </td>
-                        <td class="py-4 px-6">
-                            @if($patient->is_active)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <i class="fas fa-check-circle mr-1 text-[8px]"></i> Active
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-times-circle mr-1 text-[8px]"></i> Inactive
-                                </span>
-                            @endif
                         </td>
                         <td class="py-4 px-6">
                             <div class="flex flex-wrap gap-2">
@@ -243,23 +170,18 @@
                                 </a>
                                 <a href="{{ route('admin.consultations.create', ['patient_id' => $patient->id]) }}"
                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
-                                    <i class="fas fa-plus mr-1.5"></i> Consultation
+                                    <i class="fas fa-plus mr-1.5"></i> Start New Consultation
                                 </a>
-                                {{-- History functionality not yet implemented for admin --}}
-                                {{-- <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-cyan-600 bg-cyan-100 hover:bg-cyan-200 transition-colors duration-200"
-                                        onclick="viewHistory({{ $patient->id }})">
-                                    <i class="fas fa-history mr-1.5"></i> History
-                                </button> --}}
                                 <button type="button" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-red-600 bg-red-100 hover:bg-red-200 transition-colors duration-200"
-                                        onclick="deletePatient({{ $patient->id }})">
-                                    <i class="fas fa-trash mr-1.5"></i> Delete
+                                        onclick="archivePatient({{ $patient->id }})">
+                                    <i class="fas fa-archive mr-1.5"></i> Archive
                                 </button>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="py-8 text-center text-gray-400">
+                        <td colspan="2" class="py-8 text-center text-gray-400">
                             <div class="flex flex-col items-center gap-2">
                                 <i class="fas fa-users text-4xl text-gray-300"></i>
                                 <div class="text-lg font-medium">No patients found</div>
@@ -349,12 +271,6 @@ function closeHistoryModal() {
     }, 200);
 }
 
-function deletePatient(patientId) {
-    if (confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
-        // Implement delete functionality
-        console.log('Deleting patient:', patientId);
-    }
-}
 
 // Close modal when clicking outside
 document.addEventListener('click', function(e) {
@@ -369,5 +285,58 @@ document.addEventListener('keydown', function(e) {
         closeHistoryModal();
     }
 });
+
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const filters = ['gender', 'age_group'];
+
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
+    });
+
+    // For search input, add input event listener with debounce
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 500);
+        });
+    }
+});
+
+function archivePatient(patientId) {
+    if (confirm('Are you sure you want to archive this patient? This action can be undone.')) {
+        // Create a form and submit it to use DELETE method
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/patients/${patientId}`;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'DELETE';
+        form.appendChild(methodInput);
+        
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 </script>
 @endsection 

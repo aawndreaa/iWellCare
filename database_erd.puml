@@ -1,0 +1,144 @@
+@startuml iWellCare Database ERD - Major Entities
+
+!define Table(name,desc) class name as "name\n====\n" << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <i>x</i>
+
+' Core Entities
+Table(users, "User accounts and authentication") {
+    + primary_key(id): BIGINT
+    + username: VARCHAR(255)
+    + email: VARCHAR(255)
+    + password: VARCHAR(255)
+    + first_name: VARCHAR(255)
+    + last_name: VARCHAR(255)
+    + role: ENUM
+    + is_active: BOOLEAN
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(patients, "Patient demographic and medical info") {
+    + primary_key(id): BIGINT
+    + foreign_key(user_id): BIGINT
+    + first_name: VARCHAR(255)
+    + last_name: VARCHAR(255)
+    + contact: VARCHAR(255)
+    + email: VARCHAR(255)
+    + address: TEXT
+    + date_of_birth: DATE
+    + gender: ENUM
+    + blood_type: VARCHAR(5)
+    + medical_history: TEXT
+    + allergies: TEXT
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(doctors, "Doctor profiles and specializations") {
+    + primary_key(id): BIGINT
+    + foreign_key(user_id): BIGINT
+    + specialization: VARCHAR(255)
+    + license_number: VARCHAR(255)
+    + years_of_experience: INT
+    + status: ENUM
+    + consultation_fee: DECIMAL(10,2)
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(appointments, "Appointment scheduling") {
+    + primary_key(id): BIGINT
+    + foreign_key(patient_id): BIGINT
+    + foreign_key(doctor_id): BIGINT
+    + appointment_date: DATE
+    + appointment_time: TIME
+    + type: VARCHAR(255)
+    + status: ENUM
+    + notes: TEXT
+    + symptoms: TEXT
+    + priority: ENUM
+    + duration: INT
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(consultations, "Medical consultations") {
+    + primary_key(id): BIGINT
+    + foreign_key(appointment_id): BIGINT
+    + foreign_key(patient_id): BIGINT
+    + foreign_key(doctor_id): BIGINT
+    + consultation_date: DATE
+    + consultation_time: TIME
+    + status: ENUM
+    + chief_complaint: TEXT
+    + diagnosis: TEXT
+    + treatment_plan: TEXT
+    + notes: TEXT
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(medical_records, "Comprehensive medical records") {
+    + primary_key(id): BIGINT
+    + foreign_key(patient_id): BIGINT
+    + foreign_key(doctor_id): BIGINT
+    + foreign_key(appointment_id): BIGINT
+    + record_number: VARCHAR(255)
+    + record_date: DATE
+    + diagnosis: TEXT
+    + treatment_plan: TEXT
+    + notes: TEXT
+    + status: ENUM
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+Table(prescriptions, "Prescription records") {
+    + primary_key(id): BIGINT
+    + foreign_key(patient_id): BIGINT
+    + foreign_key(doctor_id): BIGINT
+    + foreign_key(appointment_id): BIGINT
+    + prescription_number: VARCHAR(255)
+    + prescription_date: DATE
+    + diagnosis: TEXT
+    + notes: TEXT
+    + status: ENUM
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+
+Table(invoices, "Patient billing records") {
+    + primary_key(id): BIGINT
+    + foreign_key(patient_id): BIGINT
+    + invoice_no: VARCHAR(255)
+    + date_issued: DATE
+    + total_sales: DECIMAL(10,2)
+    + grand_total: DECIMAL(10,2)
+    + created_at: TIMESTAMP
+    + updated_at: TIMESTAMP
+}
+
+' Relationships
+users --> patients : "1..0 has"
+users --> doctors : "1..0 has"
+
+patients --> appointments : "1..0 books"
+patients --> consultations : "1..0 has"
+patients --> medical_records : "1..0 has"
+patients --> prescriptions : "1..0 receives"
+patients --> invoices : "1..0 receives"
+
+doctors --> appointments : "1..0 has"
+doctors --> consultations : "1..0 conducts"
+doctors --> medical_records : "1..0 creates"
+doctors --> prescriptions : "1..0 writes"
+
+appointments --> consultations : "1..0 leads to"
+appointments --> medical_records : "1..0 generates"
+appointments --> prescriptions : "1..0 results in"
+
+consultations --> medical_records : "1..0 creates"
+
+@enduml

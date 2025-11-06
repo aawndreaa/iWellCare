@@ -16,6 +16,29 @@ class AppointmentController extends Controller
         $user = auth()->user();
         $patient = $user->patient;
 
+        if (!$patient) {
+            // If patient record doesn't exist, create it
+            $patient = \App\Models\Patient::create([
+                'user_id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'contact' => $user->phone_number,
+                'email' => $user->email,
+                'address' => $user->street_address,
+                'date_of_birth' => $user->date_of_birth ?? '1990-01-01',
+                'gender' => $user->gender ?? 'other',
+                'blood_type' => 'O+',
+                'emergency_contact' => 'Emergency Contact',
+                'emergency_contact_phone' => $user->phone_number,
+                'medical_history' => 'No significant medical history',
+                'allergies' => 'None known',
+                'current_medications' => 'None',
+                'insurance_provider' => 'Health Insurance Co.',
+                'insurance_number' => 'INS'.rand(100000000, 999999999),
+                'is_active' => true,
+            ]);
+        }
+
         $appointments = Appointment::where('patient_id', $patient->id)
             ->with(['doctor.user', 'patient'])
             ->orderBy('appointment_date', 'desc')
@@ -88,6 +111,29 @@ class AppointmentController extends Controller
 
         $user = auth()->user();
         $patient = $user->patient;
+
+        if (!$patient) {
+            // If patient record doesn't exist, create it
+            $patient = \App\Models\Patient::create([
+                'user_id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'contact' => $user->phone_number,
+                'email' => $user->email,
+                'address' => $user->street_address,
+                'date_of_birth' => $user->date_of_birth ?? '1990-01-01',
+                'gender' => $user->gender ?? 'other',
+                'blood_type' => 'O+',
+                'emergency_contact' => 'Emergency Contact',
+                'emergency_contact_phone' => $user->phone_number,
+                'medical_history' => 'No significant medical history',
+                'allergies' => 'None known',
+                'current_medications' => 'None',
+                'insurance_provider' => 'Health Insurance Co.',
+                'insurance_number' => 'INS'.rand(100000000, 999999999),
+                'is_active' => true,
+            ]);
+        }
 
         // Check if the selected time slot is available
         $existingAppointment = Appointment::where('doctor_id', $request->doctor_id)
@@ -162,6 +208,10 @@ class AppointmentController extends Controller
         $user = auth()->user();
         $patient = $user->patient;
 
+        if (!$patient) {
+            abort(403, 'Patient record not found.');
+        }
+
         // Ensure the appointment belongs to the authenticated patient
         if ($appointment->patient_id !== $patient->id) {
             abort(403, 'Unauthorized access.');
@@ -176,6 +226,10 @@ class AppointmentController extends Controller
     {
         $user = auth()->user();
         $patient = $user->patient;
+
+        if (!$patient) {
+            abort(403, 'Patient record not found.');
+        }
 
         // Ensure the appointment belongs to the authenticated patient
         if ($appointment->patient_id !== $patient->id) {

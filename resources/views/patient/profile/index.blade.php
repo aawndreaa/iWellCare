@@ -57,17 +57,17 @@
                 
                 <div>
                     <label class="text-sm font-medium text-gray-600">Phone Number</label>
-                    <p class="text-gray-900 font-medium">{{ auth()->user()->phone_number }}</p>
+                    <p class="text-gray-900 font-medium">{{ ($patient && $patient->contact) ? $patient->contact : auth()->user()->phone_number }}</p>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-sm font-medium text-gray-600">Date of Birth</label>
-                        <p class="text-gray-900 font-medium">{{ auth()->user()->date_of_birth ? \Carbon\Carbon::parse(auth()->user()->date_of_birth)->format('M d, Y') : 'Not provided' }}</p>
+                        <p class="text-gray-900 font-medium">{{ $patient && $patient->date_of_birth ? \Carbon\Carbon::parse($patient->date_of_birth)->format('M d, Y') : 'Not provided' }}</p>
                     </div>
                     <div>
                         <label class="text-sm font-medium text-gray-600">Gender</label>
-                        <p class="text-gray-900 font-medium capitalize">{{ auth()->user()->gender ?? 'Not specified' }}</p>
+                        <p class="text-gray-900 font-medium capitalize">{{ $patient ? ($patient->gender ?? 'Not specified') : 'Not specified' }}</p>
                     </div>
                 </div>
             </div>
@@ -97,6 +97,56 @@
                 <div>
                     <label class="text-sm font-medium text-gray-600">Postal Code</label>
                     <p class="text-gray-900 font-medium">{{ auth()->user()->postal_code ?? 'Not provided' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Information -->
+    <div class="card">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-xl font-bold text-gray-900">Medical Information</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-600">Blood Type</label>
+                    <p class="text-gray-900 font-medium">{{ $patient ? ($patient->blood_type ?? 'Not specified') : 'Not specified' }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600">Emergency Contact</label>
+                    <p class="text-gray-900 font-medium">{{ $patient ? ($patient->emergency_contact ?? 'Not provided') : 'Not provided' }}</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-600">Emergency Contact Phone</label>
+                <p class="text-gray-900 font-medium">{{ $patient ? ($patient->emergency_contact_phone ?? 'Not provided') : 'Not provided' }}</p>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-600">Medical History</label>
+                <p class="text-gray-900 font-medium">{{ $patient ? ($patient->medical_history ?? 'Not provided') : 'Not provided' }}</p>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-600">Allergies</label>
+                <p class="text-gray-900 font-medium">{{ $patient ? ($patient->allergies ?? 'Not provided') : 'Not provided' }}</p>
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-600">Current Medications</label>
+                <p class="text-gray-900 font-medium">{{ $patient ? ($patient->current_medications ?? 'Not provided') : 'Not provided' }}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-600">Insurance Provider</label>
+                    <p class="text-gray-900 font-medium">{{ $patient ? ($patient->insurance_provider ?? 'Not provided') : 'Not provided' }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600">Insurance Number</label>
+                    <p class="text-gray-900 font-medium">{{ $patient ? ($patient->insurance_number ?? 'Not provided') : 'Not provided' }}</p>
                 </div>
             </div>
         </div>

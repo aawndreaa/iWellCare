@@ -2,292 +2,439 @@
 
 @section('title', 'Reset Password - iWellCare')
 
+@section('head')
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+@endsection
+
 @section('content')
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <!-- Main Card with Gradient Background -->
-        <div class="card p-8" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);">
-            <div class="text-center mb-8">
-                <!-- Icon with gradient background -->
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm mb-6">
-                    <i class="fas fa-lock text-white text-2xl"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-white mb-2">
-                    Reset Password
-                </h2>
-                <p class="text-blue-100 text-sm">
-                    @if(session('otp_verified'))
-                        Enter your new password below.
-                    @else
-                        Please enter the verification code sent to your email.
-                    @endif
-                </p>
+<style>
+    footer { display: none !important; }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .reset-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .reset-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 2rem;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        margin: 0 auto;
+    }
+
+    .reset-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .reset-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .reset-subtitle {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: white;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .btn-reset {
+        width: 100%;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    .btn-reset:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-verify {
+        width: 100%;
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    .btn-verify:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .error-text {
+        color: #dc2626;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .links-section {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .link-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .link-text a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .link-text a:hover {
+        color: #1d4ed8;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .reset-wrapper {
+            padding: 0.75rem;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+
+        .reset-card {
+            padding: 1.75rem;
+            max-width: 100%;
+            margin: 0 0.5rem;
+            border-radius: 12px;
+        }
+
+        .reset-title {
+            font-size: 1.5rem;
+        }
+
+        .reset-subtitle {
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+        }
+
+        .btn-reset, .btn-verify {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .reset-wrapper {
+            padding: 0.5rem;
+            padding-top: 1rem;
+        }
+
+        .reset-card {
+            padding: 1.5rem;
+            margin: 0 0.25rem;
+        }
+
+        .reset-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .reset-title {
+            font-size: 1.375rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-input {
+            padding: 1rem;
+        }
+
+        .btn-reset, .btn-verify {
+            padding: 1.125rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .reset-card {
+            padding: 1.25rem;
+        }
+
+        .reset-title {
+            font-size: 1.25rem;
+        }
+
+        .form-input {
+            padding: 0.875rem;
+        }
+    }
+
+    /* Large screens */
+    @media (min-width: 1024px) {
+        .reset-card {
+            max-width: 450px;
+            padding: 2.5rem;
+        }
+
+        .reset-title {
+            font-size: 2rem;
+        }
+
+        .reset-subtitle {
+            font-size: 1rem;
+        }
+    }
+
+    /* Extra large screens */
+    @media (min-width: 1280px) {
+        .reset-card {
+            max-width: 480px;
+            padding: 3rem;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .form-input {
+            font-size: 1rem; /* Prevents zoom on iOS */
+        }
+
+        .btn-reset, .btn-verify {
+            min-height: 48px;
+        }
+    }
+
+    /* High DPI displays */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        .reset-card {
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 12px 12px -5px rgba(0, 0, 0, 0.08);
+        }
+    }
+</style>
+
+<div class="reset-wrapper" style="width: 100vw; max-width: 100vw; overflow-x: hidden;">
+    <div class="reset-card">
+        <div class="reset-header">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mb-6">
+                <i class="fas fa-lock text-white text-2xl"></i>
             </div>
+            <h1 class="reset-title">Reset Password</h1>
+            <p class="reset-subtitle">Enter your new password below.</p>
+        </div>
 
-            @if (session('success'))
-                <div class="mb-6 bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-check-circle text-green-300 text-lg"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-green-100">
-                                {{ session('success') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="mb-6 bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-triangle text-red-300 text-lg"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-100">
-                                {{ session('error') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if(!session('otp_verified'))
-                <!-- OTP Verification Form -->
-                <form method="POST" action="{{ route('password.verify-otp') }}" id="otpForm" class="space-y-6">
-                    @csrf
-                    <input type="hidden" name="email" value="{{ $email ?? '' }}">
-
-                    <div>
-                        <label for="otp" class="block text-sm font-medium text-blue-100 mb-2">
-                            Verification Code
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-key text-blue-200"></i>
-                            </div>
-                            <input type="text" 
-                                   id="otp" 
-                                   name="otp" 
-                                   placeholder="Enter 6-digit code"
-                                   maxlength="6"
-                                   pattern="[0-9]{6}"
-                                   required 
-                                   autofocus
-                                   class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-center text-2xl font-mono tracking-widest @error('otp') border-red-300 @enderror">
-                        </div>
-                        @error('otp')
-                            <p class="mt-2 text-sm text-red-300">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                        <p class="mt-2 text-sm text-blue-200">
-                            Enter the 6-digit verification code sent to your email.
-                        </p>
-                    </div>
-
-                    <div>
-                        <button type="submit" 
-                                class="w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl backdrop-blur-sm border border-white/20">
-                            <i class="fas fa-check mr-2"></i>
-                            Verify Code
-                        </button>
-                    </div>
-
-                    <div class="text-center">
-                        <button type="button" 
-                                id="resendOtpBtn" 
-                                disabled
-                                class="text-sm text-white hover:text-blue-200 focus:outline-none focus:underline disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fas fa-redo mr-1"></i>
-                            Resend Code (<span id="resendTimer">60</span>s)
-                        </button>
-                    </div>
-                </form>
-            @else
-                <!-- Password Reset Form -->
-                <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
-                    @csrf
-                    <input type="hidden" name="email" value="{{ $email ?? '' }}">
-
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-blue-100 mb-2">
-                            New Password
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock text-blue-200"></i>
-                            </div>
-                            <input type="password" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Enter new password"
-                                   required 
-                                   autofocus
-                                   class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm @error('password') border-red-300 @enderror">
-                        </div>
-                        @error('password')
-                            <p class="mt-2 text-sm text-red-300">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                        <p class="mt-2 text-sm text-blue-200">
-                            Password must be at least 8 characters long.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-blue-100 mb-2">
-                            Confirm New Password
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock text-blue-200"></i>
-                            </div>
-                            <input type="password" 
-                                   id="password_confirmation" 
-                                   name="password_confirmation" 
-                                   placeholder="Confirm new password"
-                                   required
-                                   class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm">
-                        </div>
-                    </div>
-
-                    <div>
-                        <button type="submit" 
-                                class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-semibold py-3 px-6 rounded-xl backdrop-blur-sm border border-green-500/30">
-                            <i class="fas fa-save mr-2"></i>
-                            Reset Password
-                        </button>
-                    </div>
-                </form>
-            @endif
-
-            <div class="mt-6 text-center">
-                <p class="text-sm text-blue-100">
-                    <a href="{{ route('login') }}" class="text-white hover:text-blue-200 focus:outline-none focus:underline font-medium">
-                        <i class="fas fa-arrow-left mr-1"></i>
-                        Back to Login
-                    </a>
-                </p>
-            </div>
-
-            <!-- Info Card -->
-            <div class="mt-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+        @if (session('success'))
+            <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        <i class="fas fa-info-circle text-blue-200 text-lg"></i>
+                        <i class="fas fa-check-circle text-green-600 text-lg"></i>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm text-blue-100">
-                            <span class="font-semibold">Note:</span> 
-                            @if(!session('otp_verified'))
-                                The verification code will expire in 10 minutes.
-                            @else
-                                Make sure to choose a strong password that you can remember.
-                            @endif
+                        <p class="text-sm text-green-800">
+                            {{ session('success') }}
                         </p>
                     </div>
+                </div>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-800">
+                            {{ session('error') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Password Reset Form -->
+        <form method="POST" action="{{ route('password.update') }}">
+            @csrf
+            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+            <input type="hidden" name="email" value="{{ old('email', $request->email) }}">
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           value="{{ old('email', $request->email) }}"
+                           placeholder="Enter your email address"
+                           required
+                           readonly
+                           class="form-input pl-10 bg-gray-50">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">New Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Enter new password"
+                           required
+                           autofocus
+                           class="form-input pl-10 @error('password') border-red-500 @enderror">
+                </div>
+                @error('password')
+                    <div class="error-text">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ $message }}
+                    </div>
+                @enderror
+                <p class="mt-2 text-sm text-gray-600">
+                    Password must be at least 8 characters long.
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label for="password_confirmation" class="form-label">Confirm New Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password"
+                           id="password_confirmation"
+                           name="password_confirmation"
+                           placeholder="Confirm new password"
+                           required
+                           class="form-input pl-10 @error('password_confirmation') border-red-500 @enderror">
+                </div>
+                @error('password_confirmation')
+                    <div class="error-text">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+
+            <button type="submit" class="btn-reset">
+                <i class="fas fa-save"></i>
+                Reset Password
+            </button>
+        </form>
+
+        <div class="links-section">
+            <p class="link-text">
+                <a href="{{ route('login') }}">Back to Login</a>
+            </p>
+        </div>
+
+        <!-- Info Card -->
+        <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-500 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-gray-600">
+                        <span class="font-semibold">Note:</span> Make sure to choose a strong password that you can remember. This link will expire in 60 minutes.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@if(!session('otp_verified'))
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const otpInput = document.getElementById('otp');
-    const resendBtn = document.getElementById('resendOtpBtn');
-    const resendTimer = document.getElementById('resendTimer');
-    let countdown = 60;
-
-    // Auto-format OTP input
-    otpInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 6) {
-            value = value.substring(0, 6);
-        }
-        e.target.value = value;
-    });
-
-    // Start countdown timer
-    function startCountdown() {
-        resendBtn.disabled = true;
-        countdown = 60;
-        
-        const timer = setInterval(() => {
-            countdown--;
-            resendTimer.textContent = countdown;
-            
-            if (countdown <= 0) {
-                clearInterval(timer);
-                resendBtn.disabled = false;
-                resendBtn.innerHTML = '<i class="fas fa-redo mr-1"></i>Resend Code';
-            }
-        }, 1000);
-    }
-
-    // Handle resend OTP
-    resendBtn.addEventListener('click', function() {
-        const email = document.querySelector('input[name="email"]').value;
-        
-        fetch('{{ route("password.resend-otp") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ email: email })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message using SweetAlert2
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Code Sent!',
-                    text: data.message,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: '#fff',
-                    confirmButtonColor: 'rgba(255, 255, 255, 0.2)',
-                    backdrop: 'rgba(0, 0, 0, 0.4)'
-                });
-                
-                // Start countdown again
-                startCountdown();
-            } else {
-                // Show error message using SweetAlert2
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Failed to Send Code',
-                    text: data.message,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: '#fff',
-                    confirmButtonColor: 'rgba(255, 255, 255, 0.2)',
-                    backdrop: 'rgba(0, 0, 0, 0.4)'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to send verification code.',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: '#fff',
-                confirmButtonColor: 'rgba(255, 255, 255, 0.2)',
-                backdrop: 'rgba(0, 0, 0, 0.4)'
-            });
-        });
-    });
-
-    // Start initial countdown
-    startCountdown();
-});
-</script>
-@endif
 @endsection 

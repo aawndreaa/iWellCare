@@ -5,64 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice #{{ $invoice->id }}</title>
     <style>
+        @page {
+            size: 8.5in 5.5in;
+            margin: 0;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 6px;
             color: #333;
+            width: 8.5in;
+            height: 5.5in;
+            font-size: 8px;
+            page-break-inside: avoid;
+            box-sizing: border-box;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 8px;
             border-bottom: 2px solid #2563eb;
-            padding-bottom: 20px;
+            padding-bottom: 6px;
         }
         .logo {
-            font-size: 24px;
+            font-size: 12px;
             font-weight: bold;
             color: #2563eb;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
         }
         .invoice-details {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 8px;
         }
         .patient-info, .invoice-info {
             flex: 1;
         }
         .patient-info h3, .invoice-info h3 {
             color: #2563eb;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
+            font-size: 10px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 8px;
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 2px;
             text-align: left;
+            font-size: 7px;
+            word-wrap: break-word;
+            overflow: hidden;
         }
         th {
             background-color: #f8f9fa;
             font-weight: bold;
+            font-size: 8px;
         }
         .total-row {
             background-color: #f8f9fa;
             font-weight: bold;
         }
         .footer {
-            margin-top: 40px;
+            margin-top: 8px;
             text-align: center;
-            font-size: 12px;
+            font-size: 6px;
             color: #666;
         }
     </style>
 </head>
 <body>
     <div class="header">
+        <img src="/assets/img/iWellCare-logo.png" alt="iWellCare" style="width: 80px; height: 80px; margin-bottom: 8px;">
         <div class="logo">iWellCare</div>
         <div>Healthcare Management System</div>
     </div>

@@ -2,14 +2,17 @@
     $user = Auth::user();
     $role = $user->role ?? 'guest';
 
-    // Get appointment counts based on role
+    // Get appointment counts based on role (confirmed appointments for today)
     if ($role === 'patient') {
         $patientModel = $user->patient ?? null;
-        $appointmentCount = $patientModel ? $patientModel->appointments()->count() : 0;
+        $appointmentCount = $patientModel ? $patientModel->appointments()->where('status', 'confirmed')->whereDate('appointment_date', today())->count() : 0;
     } elseif ($role === 'doctor') {
-        $appointmentCount = \App\Models\Appointment::where('doctor_id', $user->id)->count();
+        $appointmentCount = \App\Models\Appointment::where('doctor_id', $user->id)->where('status', 'confirmed')->whereDate('appointment_date', today())->count();
     } elseif ($role === 'staff') {
-        $appointmentCount = \App\Models\Appointment::count();
+        $appointmentCount = \App\Models\Appointment::where('status', 'confirmed')->whereDate('appointment_date', today())->count();
+    } elseif ($role === 'admin') {
+        // Admin can see all confirmed appointments for today
+        $appointmentCount = \App\Models\Appointment::where('status', 'confirmed')->whereDate('appointment_date', today())->count();
     } else {
         $appointmentCount = 0;
     }
@@ -26,7 +29,7 @@
                 <div class="font-semibold text-gray-900 truncate">{{ $user->first_name }} {{ $user->last_name }}</div>
                 <div class="text-sm text-gray-500 capitalize">{{ $role }}</div>
                 @php
-                    $panelLabel = $role === 'doctor' ? 'Doctor Panel' : ($role === 'staff' ? 'Staff Panel' : ($role === 'patient' ? 'Patient Panel' : ''));
+                    $panelLabel = $role === 'admin' ? 'Admin Panel' : ($role === 'doctor' ? 'Doctor Panel' : ($role === 'staff' ? 'Staff Panel' : ($role === 'patient' ? 'Patient Panel' : '')));
                 @endphp
                 <div class="text-xs text-gray-400 mt-1">{{ $panelLabel }}</div>
             </div>
@@ -36,7 +39,73 @@
     <!-- Navigation Section -->
     <div class="flex-1 overflow-y-auto p-4">
         <nav class="space-y-2">
-        @if($role === 'doctor')
+        @if($role === 'admin')
+            <!-- Admin Navigation -->
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 shadow-sm' : '' }}" href="{{ route('admin.dashboard') }}">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.dashboard') ? 'bg-blue-200' : '' }}">
+                    <i class="fas fa-tachometer-alt text-blue-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            
+            <a class="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-600 transition-all duration-200 {{ request()->routeIs('admin.appointments.*') ? 'bg-green-50 text-green-600 border-r-4 border-green-600 shadow-sm' : '' }}" href="{{ route('admin.appointments.index') }}">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.appointments.*') ? 'bg-green-200' : '' }}">
+                        <i class="fas fa-calendar-check text-green-600 text-sm"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-medium">Appointments</span>
+                        <span class="text-xs text-gray-500">Today's</span>
+                    </div>
+                </div>
+                @if($appointmentCount > 0)
+                    <span class="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">{{ $appointmentCount }}</span>
+                @endif
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 {{ request()->routeIs('admin.patients.*') ? 'bg-purple-50 text-purple-600 border-r-4 border-purple-600 shadow-sm' : '' }}" href="{{ route('admin.patients.index') }}">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.patients.*') ? 'bg-purple-200' : '' }}">
+                    <i class="fas fa-users text-purple-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Patients</span>
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 {{ request()->routeIs('admin.staff.*') ? 'bg-orange-50 text-orange-600 border-r-4 border-orange-600 shadow-sm' : '' }}" href="{{ route('admin.staff.index') }}">
+                <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.staff.*') ? 'bg-orange-200' : '' }}">
+                    <i class="fas fa-user-cog text-orange-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Staff Management</span>
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200 {{ request()->routeIs('admin.consultations.*') ? 'bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600 shadow-sm' : '' }}" href="{{ route('admin.consultations.index') }}">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.consultations.*') ? 'bg-indigo-200' : '' }}">
+                    <i class="fas fa-stethoscope text-indigo-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Consultations</span>
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-all duration-200 {{ request()->routeIs('admin.inventory.*') ? 'bg-teal-50 text-teal-600 border-r-4 border-teal-600 shadow-sm' : '' }}" href="{{ route('admin.inventory.index') }}">
+                <div class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.inventory.*') ? 'bg-teal-200' : '' }}">
+                    <i class="fas fa-pills text-teal-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Inventory</span>
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-all duration-200 {{ request()->routeIs('admin.invoice.*') ? 'bg-yellow-50 text-yellow-600 border-r-4 border-yellow-600 shadow-sm' : '' }}" href="{{ route('admin.invoice.index') }}">
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.invoice.*') ? 'bg-yellow-200' : '' }}">
+                    <i class="fas fa-file-invoice-dollar text-yellow-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Invoice</span>
+            </a>
+            
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 {{ request()->routeIs('admin.reports.*') ? 'bg-red-50 text-red-600 border-r-4 border-red-600 shadow-sm' : '' }}" href="{{ route('admin.reports.index') }}">
+                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.reports.*') ? 'bg-red-200' : '' }}">
+                    <i class="fas fa-chart-bar text-red-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Reports</span>
+            </a>
+            
+        @elseif($role === 'doctor')
             <!-- Doctor Navigation -->
             <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 shadow-sm' : '' }}" href="{{ route('admin.dashboard') }}">
                 <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center {{ request()->routeIs('doctor.dashboard') ? 'bg-blue-200' : '' }}">
@@ -50,10 +119,16 @@
                     <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center {{ request()->routeIs('doctor.appointments.*') ? 'bg-green-200' : '' }}">
                         <i class="fas fa-calendar-check text-green-600 text-sm"></i>
                     </div>
-                    <span class="font-medium">Appointments</span>
+                    <div class="flex flex-col">
+                        <span class="font-medium">Appointments</span>
+                        <span class="text-xs text-gray-500">Today's</span>
+                    </div>
                 </div>
                 @if($appointmentCount > 0)
-                    <span class="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">{{ $appointmentCount }}</span>
+                    <div class="flex flex-col items-end">
+                        <span class="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">{{ $appointmentCount }}</span>
+                        <span class="text-xs text-gray-500 mt-1">puti</span>
+                    </div>
                 @endif
             </a>
             
@@ -106,7 +181,10 @@
                     <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center {{ request()->routeIs('staff.appointments.*') ? 'bg-blue-200' : '' }}">
                         <i class="fas fa-calendar-check text-blue-600 text-sm"></i>
                     </div>
-                    <span class="font-medium">Appointments</span>
+                    <div class="flex flex-col">
+                        <span class="font-medium">Appointments</span>
+                        <span class="text-xs text-gray-500">Today's</span>
+                    </div>
                 </div>
                 @if($appointmentCount > 0)
                     <span class="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">{{ $appointmentCount }}</span>
@@ -176,7 +254,10 @@
                     <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center {{ request()->routeIs('patient.appointments.*') ? 'bg-blue-200' : '' }}">
                         <i class="fas fa-calendar-check text-blue-600 text-sm"></i>
                     </div>
-                    <span class="font-medium">Appointments</span>
+                    <div class="flex flex-col">
+                        <span class="font-medium">Appointments</span>
+                        <span class="text-xs text-gray-500">Today's</span>
+                    </div>
                 </div>
                 @if($appointmentCount > 0)
                     <span class="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">{{ $appointmentCount }}</span>
@@ -216,7 +297,14 @@
         <div class="border-t border-gray-200 my-6"></div>
 
         <!-- Common Navigation -->
-        @if($role === 'doctor')
+        @if($role === 'admin')
+            <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 {{ request()->routeIs('admin.profile.*') ? 'bg-gray-50 text-gray-900 border-r-4 border-gray-600 shadow-sm' : '' }}" href="{{ route('admin.profile.index') }}">
+                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center {{ request()->routeIs('admin.profile.*') ? 'bg-gray-200' : '' }}">
+                    <i class="fas fa-user text-gray-600 text-sm"></i>
+                </div>
+                <span class="font-medium">Profile</span>
+            </a>
+        @elseif($role === 'doctor')
             <a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 {{ request()->routeIs('doctor.profile.*') ? 'bg-gray-50 text-gray-900 border-r-4 border-gray-600 shadow-sm' : '' }}" href="{{ route('doctor.profile.index') }}">
                 <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center {{ request()->routeIs('doctor.profile.*') ? 'bg-gray-200' : '' }}">
                     <i class="fas fa-user text-gray-600 text-sm"></i>

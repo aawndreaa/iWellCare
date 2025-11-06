@@ -13,10 +13,17 @@ class AppointmentController extends Controller
     /**
      * Display a listing of appointments.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $appointments = Appointment::with('patient')
-            ->orderBy('appointment_date', 'asc')
+        $query = Appointment::with('patient');
+
+        if ($request->filled('archived')) {
+            $query->where('is_archived', $request->boolean('archived'));
+        } else {
+            $query->where('is_archived', false);
+        }
+
+        $appointments = $query->orderBy('appointment_date', 'asc')
             ->orderBy('appointment_time', 'asc')
             ->paginate(15);
 
@@ -214,5 +221,19 @@ class AppointmentController extends Controller
             'success' => true,
             'cancelled_appointments' => $cancelledAppointments,
         ]);
+    }
+
+    public function archive(Appointment $appointment)
+    {
+        $appointment->update(['is_archived' => true]);
+
+        return redirect()->route('doctor.appointments.index')->with('success', 'Appointment archived successfully.');
+    }
+
+    public function unarchive(Appointment $appointment)
+    {
+        $appointment->update(['is_archived' => false]);
+
+        return redirect()->route('doctor.appointments.index')->with('success', 'Appointment unarchived successfully.');
     }
 }

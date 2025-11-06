@@ -1,282 +1,373 @@
-@extends('layouts.app')
+@extends('layouts.staff')
 
-@section('title', 'Patients Report')
+@section('title', 'Patient Report - iWellCare')
+@section('page-title', 'Patient Report')
+@section('page-subtitle', 'Patient statistics and management overview')
+
+@push('styles')
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    body {
+        font-size: 12px !important;
+        line-height: 1.4 !important;
+    }
+    .grid {
+        display: block !important;
+    }
+    .grid-cols-1, .md\\:grid-cols-2, .lg\\:grid-cols-4 {
+        display: block !important;
+    }
+    .gap-6 > * {
+        margin-bottom: 20px !important;
+    }
+    table {
+        font-size: 11px !important;
+        width: 100% !important;
+    }
+    th, td {
+        padding: 6px !important;
+        border: 1px solid #ddd !important;
+    }
+    .page-break {
+        page-break-before: always;
+    }
+    .print-header {
+        text-align: center;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    .print-header h1 {
+        color: #007bff;
+        margin: 0;
+        font-size: 24px;
+    }
+}
+</style>
+@endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">
-                        <i class="fas fa-users me-2"></i>Patients Report
-                    </h1>
-                    <p class="text-muted mb-0">View and analyze patient data</p>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-success me-2" onclick="exportReport()">
-                        <i class="fas fa-file-pdf me-2"></i>Export PDF
-                    </button>
-                    <a href="{{ route('staff.reports.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Reports
-                    </a>
-                </div>
+@if(request('print'))
+<div class="print-header">
+    <h1>Patient Report</h1>
+    <p><strong>Generated:</strong> {{ \Carbon\Carbon::now()->format('F d, Y \a\t g:i A') }}</p>
+    <p><strong>iWellCare Healthcare System</strong></p>
+</div>
+@else
+<!-- Header Actions -->
+<div class="flex justify-between items-center mb-8 no-print">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-900">Patient Management Report</h3>
+        <p class="text-gray-600">Comprehensive patient statistics and analysis</p>
+    </div>
+    <a href="{{ route('staff.reports.index') }}" class="btn-secondary">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Reports
+    </a>
+</div>
+@endif
+
+<!-- Patient Statistics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="card p-6" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">Total Patients</p>
+                <p class="text-white text-3xl font-bold">{{ $patientStats['total'] }}</p>
+                <p class="text-blue-100 text-xs">Registered</p>
+            </div>
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users text-white text-xl"></i>
             </div>
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Filter Options</h5>
-        </div>
-        <div class="card-body">
-            <form method="GET" action="{{ route('staff.reports.patients') }}" class="row g-3">
-                <div class="col-md-3">
-                    <label for="search" class="form-label">Search</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           value="{{ request('search') }}" placeholder="Name or email">
-                </div>
-                <div class="col-md-3">
-                    <label for="status" class="form-label">Status</label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="">All Status</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="period" class="form-label">Period</label>
-                    <select class="form-select" id="period" name="period">
-                        <option value="">All Time</option>
-                        <option value="month" {{ request('period') === 'month' ? 'selected' : '' }}>This Month</option>
-                        <option value="week" {{ request('period') === 'week' ? 'selected' : '' }}>This Week</option>
-                        <option value="year" {{ request('period') === 'year' ? 'selected' : '' }}>This Year</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">&nbsp;</label>
-                    <div class="d-grid gap-2 d-md-flex">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>Filter
-                        </button>
-                        <a href="{{ route('staff.reports.patients') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-2"></i>Clear
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Patients
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $patients->total() }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+    <div class="card p-6" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">Active Patients</p>
+                <p class="text-white text-3xl font-bold">{{ $patientStats['active'] }}</p>
+                <p class="text-blue-100 text-xs">Currently Active</p>
             </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Active Patients
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $patients->where('is_active', true)->count() }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                New This Month
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $patients->where('created_at', '>=', now()->startOfMonth())->count() }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                With Appointments
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $patients->filter(function($patient) { return $patient->appointments->count() > 0; })->count() }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-check text-white text-xl"></i>
             </div>
         </div>
     </div>
 
-    <!-- Patients Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Patients</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Patient</th>
-                            <th>Contact Info</th>
-                            <th>Demographics</th>
-                            <th>Activity</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($patients as $patient)
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    @if($patient->profile_photo)
-                                        <img src="{{ asset('storage/' . $patient->profile_photo) }}" 
-                                             class="rounded-circle me-3" width="40" height="40" alt="Profile">
-                                    @else
-                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
-                                             style="width: 40px; height: 40px;">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
-                                        <br><small class="text-muted">ID: {{ $patient->id }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <i class="fas fa-envelope text-muted me-1"></i>
-                                    <small>{{ $patient->email }}</small>
-                                </div>
-                                <div>
-                                    <i class="fas fa-phone text-muted me-1"></i>
-                                    <small>{{ $patient->contact ? $patient->contact : 'No phone' }}</small>
-                                </div>
-                                @if($patient->address)
-                                    <div>
-                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                        <small>{{ Str::limit($patient->address, 30) }}</small>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>{{ $patient->age ? $patient->age : 'N/A' }} years old</strong>
-                                </div>
-                                <div>
-                                    <span class="badge bg-secondary">{{ ucfirst($patient->gender ? $patient->gender : 'N/A') }}</span>
-                                </div>
-                                @if($patient->date_of_birth)
-                                    <div>
-                                        <small class="text-muted">{{ $patient->date_of_birth->format('M d, Y') }}</small>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>{{ $patient->appointments->count() }} appointments</strong>
-                                </div>
-                                <div>
-                                    <small class="text-muted">{{ $patient->consultations->count() }} consultations</small>
-                                </div>
-                                @if($patient->appointments->count() > 0)
-                                    @php
-                                        $lastAppointment = $patient->appointments->sortByDesc('appointment_date')->first();
-                                    @endphp
-                                    <div>
-                                        <small class="text-info">Last: {{ $lastAppointment->appointment_date->format('M d, Y') }}</small>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                @if($patient->is_active)
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-secondary">Inactive</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('staff.patients.show', $patient) }}" 
-                                   class="btn btn-sm btn-outline-primary" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center">No patients found.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    <div class="card p-6" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">Inactive Patients</p>
+                <p class="text-white text-3xl font-bold">{{ $patientStats['inactive'] }}</p>
+                <p class="text-blue-100 text-xs">Not Active</p>
             </div>
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-times text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
 
-            <!-- Pagination -->
-            <div class="d-flex justify-content-center">
-                {{ $patients->links() }}
+    <div class="card p-6" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">New This Month</p>
+                <p class="text-white text-3xl font-bold">{{ $patientStats['new_this_month'] }}</p>
+                <p class="text-blue-100 text-xs">Recently Added</p>
+            </div>
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-plus text-white text-xl"></i>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Export Form (Hidden) -->
-<form id="exportForm" method="POST" action="{{ route('staff.reports.export') }}" style="display: none;">
-    @csrf
-    <input type="hidden" name="type" value="patients">
-    <input type="hidden" name="format" value="pdf">
-    <input type="hidden" name="search" value="{{ request('search') }}">
-    <input type="hidden" name="status" value="{{ request('status') }}">
-    <input type="hidden" name="period" value="{{ request('period') }}">
-</form>
+@if(!request('print'))
+<!-- Search and Filters -->
+<div class="card mb-8 no-print">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-xl font-bold text-gray-900">Search & Filter</h3>
+        <p class="text-gray-600 text-sm">Find specific patients or filter by status</p>
+    </div>
+    <div class="p-6">
+        <form method="GET" action="{{ route('staff.reports.patients') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search Patients</label>
+                <input type="text"
+                       class="form-input w-full"
+                       id="search"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Search by name or contact number">
+            </div>
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select class="form-input w-full" id="status" name="status">
+                    <option value="">All Patients</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+            <div class="flex items-end">
+                <a href="{{ route('staff.reports.patients') }}" class="btn-secondary w-full">
+                    <i class="fas fa-refresh mr-2"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
+<!-- Patients Table -->
+<div class="card">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-xl font-bold text-gray-900">Patient List ({{ $patients->total() }} total)</h3>
+        <p class="text-gray-600 text-sm">Detailed patient information and statistics</p>
+    </div>
+    <div class="p-6">
+        @if($patients->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age/Gender</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($patients as $patient)
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ $patient->first_name }} {{ $patient->last_name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">ID: #{{ $patient->id }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $patient->contact ?? 'N/A' }}</div>
+                                    <div class="text-sm text-gray-500">{{ $patient->email ?? 'No email' }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $patient->age ?? 'N/A' }} years</div>
+                                    <div class="text-sm text-gray-500">{{ ucfirst($patient->gender ?? 'N/A') }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    {{ $patient->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                    {{ $patient->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex space-x-2">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {{ $patient->consultations->count() }} consultations
+                                    </span>
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                        {{ $patient->appointments->count() }} appointments
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                @php
+                                    $lastConsultation = $patient->consultations->sortByDesc('consultation_date')->first();
+                                    $lastAppointment = $patient->appointments->sortByDesc('appointment_date')->first();
+                                    
+                                    $lastVisit = null;
+                                    if ($lastConsultation && $lastAppointment) {
+                                        $lastVisit = $lastConsultation->consultation_date > $lastAppointment->appointment_date 
+                                            ? $lastConsultation->consultation_date 
+                                            : $lastAppointment->appointment_date;
+                                    } elseif ($lastConsultation) {
+                                        $lastVisit = $lastConsultation->consultation_date;
+                                    } elseif ($lastAppointment) {
+                                        $lastVisit = $lastAppointment->appointment_date;
+                                    }
+                                @endphp
+                                {{ $lastVisit ? $lastVisit->format('M d, Y') : 'No visits' }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            @if($patients->hasPages())
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing {{ $patients->firstItem() ?? 0 }} to {{ $patients->lastItem() ?? 0 }} of {{ $patients->total() }} results
+                        </div>
+                        <div class="flex space-x-2">
+                            {{ $patients->links() }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @else
+            <div class="text-center py-12">
+                <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Patients Found</h3>
+                <p class="text-gray-600">No patients match your search criteria</p>
+            </div>
+        @endif
+    </div>
+</div>
+
+@if(!request('print'))
+<!-- Export Options -->
+<div class="card mt-8 no-print">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-xl font-bold text-gray-900">Export Options</h3>
+        <p class="text-gray-600 text-sm">Download or share your patient report</p>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button type="button"
+                    class="flex flex-col items-center p-4 border-2 border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                    onclick="exportReport('patient')">
+                <i class="fas fa-file-pdf text-2xl text-blue-600 mb-2"></i>
+                <span class="font-semibold text-gray-900">Export PDF</span>
+                <span class="text-sm text-gray-600">Complete Report</span>
+            </button>
+
+            <a href="{{ route('staff.reports.patients', array_merge(request()->all(), ['print' => 1])) }}" target="_blank"
+               class="flex flex-col items-center p-4 border-2 border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200">
+                <i class="fas fa-print text-2xl text-purple-600 mb-2"></i>
+                <span class="font-semibold text-gray-900">Print Report</span>
+                <span class="text-sm text-gray-600">Print to Paper</span>
+            </a>
+
+            <button type="button"
+                    class="flex flex-col items-center p-4 border-2 border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200"
+                    onclick="exportReport('patient_summary')">
+                <i class="fas fa-chart-pie text-2xl text-orange-600 mb-2"></i>
+                <span class="font-semibold text-gray-900">Summary Report</span>
+                <span class="text-sm text-gray-600">Analytics Only</span>
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+@endsection
+
+@push('scripts')
+<script src="{{ asset('assets/js/modal-utils.js') }}"></script>
 <script>
-function exportReport() {
-    // Update form values with current filter values
-    document.querySelector('#exportForm input[name="search"]').value = '{{ request('search') }}';
-    document.querySelector('#exportForm input[name="status"]').value = '{{ request('status') }}';
-    document.querySelector('#exportForm input[name="period"]').value = '{{ request('period') }}';
-    
-    // Submit the form
-    document.getElementById('exportForm').submit();
+// Auto-print if print parameter is present
+@if(request('print'))
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        window.print();
+    }, 500);
+});
+@endif
+
+function exportReport(type) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const searchParams = new URLSearchParams(window.location.search);
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/staff/reports/export';
+    form.target = '_blank';
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const typeInput = document.createElement('input');
+    typeInput.type = 'hidden';
+    typeInput.name = 'type';
+    typeInput.value = type;
+    form.appendChild(typeInput);
+
+    if (search) {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'hidden';
+        searchInput.name = 'search';
+        searchInput.value = search;
+        form.appendChild(searchInput);
+    }
+
+    if (status) {
+        const statusInput = document.createElement('input');
+        statusInput.type = 'hidden';
+        statusInput.name = 'status';
+        statusInput.value = status;
+        form.appendChild(statusInput);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 }
+
 </script>
-@endsection 
+@endpush

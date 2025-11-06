@@ -124,6 +124,12 @@
                     </select>
                 </div>
             </div>
+            <div>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="archived" value="1" {{ request('archived') ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="text-gray-700 font-semibold text-sm">Show Archived</span>
+                </label>
+            </div>
             <div class="flex gap-3">
                 <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2">
                     <i class="fas fa-search"></i> Search
@@ -236,39 +242,47 @@
                         </td>
                         <td class="py-4 px-6">
                             <div class="flex flex-wrap gap-2">
-                                @if($appointment->status === 'pending')
-                                    <form method="POST" action="/admin/appointments/{{ $appointment->id }}/confirm" class="inline-block">
+                                @if(!$appointment->is_archived)
+                                    @if($appointment->status === 'pending')
+                                        <form method="POST" action="/admin/appointments/{{ $appointment->id }}/confirm" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                                            <i class="fas fa-check mr-1.5"></i> Approve
+                                        </button>
+                                        </form>
+                                        <form method="POST" action="/admin/appointments/{{ $appointment->id }}/decline" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
+                                            <i class="fas fa-times mr-1.5"></i> Decline
+                                        </button>
+                                        </form>
+                                    @elseif($appointment->status === 'confirmed')
+                                        <form method="POST" action="/admin/appointments/{{ $appointment->id }}/complete" class="inline-block">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                                            <i class="fas fa-check-double mr-1.5"></i> Complete
+                                        </button>
+                                        </form>
+                                    @endif
+                                    <form method="POST" action="/admin/appointments/{{ $appointment->id }}/archive" class="inline-block">
                                         @csrf
                                         <button type="submit"
-                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
-                                        <i class="fas fa-check mr-1.5"></i> Approve
+                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200">
+                                        <i class="fas fa-archive mr-1.5"></i> Archive
                                     </button>
                                     </form>
-                                    <form method="POST" action="/admin/appointments/{{ $appointment->id }}/decline" class="inline-block">
-                                        @csrf
-                                        <button type="submit"
-                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
-                                        <i class="fas fa-times mr-1.5"></i> Decline
-                                    </button>
-                                    </form>
-                                @elseif($appointment->status === 'confirmed')
-                                    <form method="POST" action="/admin/appointments/{{ $appointment->id }}/complete" class="inline-block">
+                                @else
+                                    <form method="POST" action="/admin/appointments/{{ $appointment->id }}/unarchive" class="inline-block">
                                         @csrf
                                         <button type="submit"
                                                 class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                                        <i class="fas fa-check-double mr-1.5"></i> Complete
+                                        <i class="fas fa-undo mr-1.5"></i> Unarchive
                                     </button>
                                     </form>
                                 @endif
-                                <form method="POST" action="/admin/appointments/{{ $appointment->id }}" class="inline-block">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                                            onclick="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.');">
-                                    <i class="fas fa-trash mr-1.5"></i> Delete
-                                </button>
-                                </form>
                             </div>
                         </td>
                     </tr>

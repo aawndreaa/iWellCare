@@ -1,22 +1,34 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Patient - iWellCare')
-@section('page-title', 'Edit Patient')
-@section('page-subtitle', 'Update patient information')
+@section('title', 'Edit Consultation - iWellCare')
+@section('page-title', 'Edit Consultation')
+@section('page-subtitle', 'Update consultation details')
 
 @section('content')
-<div class="patients-content">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Edit Patient Information</h2>
-            <p class="text-gray-600">Update patient details and medical information</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div></div>
+            <a href="{{ route('admin.consultations.show', $consultation) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Consultation
+            </a>
         </div>
-        <a href="{{ route('admin.patients.show', $patient) }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Patient
-        </a>
     </div>
 
-    <div class="card p-6 max-w-4xl mx-auto">
+    <!-- Form -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <form action="{{ route('admin.consultations.update', $consultation) }}" method="POST" id="consultationForm">
+            @csrf
+            @method('PUT')
+            <meta name="csrf-token" content="{{ csrf_token() }}">
+
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Consultation Details</h2>
+                <p class="text-sm text-gray-600">Update the consultation information</p>
+            </div>
+
+            <div class="p-6 space-y-6">
         @if($errors->any())
             <div class="bg-red-100 text-red-800 p-4 rounded mb-6">
                 <ul class="list-disc list-inside">
@@ -27,178 +39,126 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.patients.update', $patient) }}" method="POST">
-            @csrf
-            @method('PUT')
-            
+                <!-- Patient and Doctor Selection -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Basic Information -->
-                <div class="md:col-span-2">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
-                </div>
-                
+                    <!-- Patient Selection -->
                 <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                    <input type="text" name="first_name" id="first_name" 
-                           value="{{ old('first_name', $patient->first_name) }}" 
-                           class="form-input w-full" required>
-                </div>
-                
-                <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                    <input type="text" name="last_name" id="last_name" 
-                           value="{{ old('last_name', $patient->last_name) }}" 
-                           class="form-input w-full" required>
-                </div>
-                
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <input type="email" name="email" id="email" 
-                           value="{{ old('email', $patient->email) }}" 
-                           class="form-input w-full" required>
-                </div>
-                
-                <div>
-                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <input type="text" name="contact" id="contact" 
-                           value="{{ old('contact', $patient->contact) }}" 
-                           class="form-input w-full" placeholder="+63 912 345 6789">
-                </div>
-                
-                <div>
-                    <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" name="date_of_birth" id="date_of_birth" 
-                           value="{{ old('date_of_birth', $patient->date_of_birth ? $patient->date_of_birth->format('Y-m-d') : '') }}" 
-                           class="form-input w-full">
-                </div>
-                
-                <div>
-                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                    <select name="gender" id="gender" class="form-input w-full">
-                        <option value="">Select Gender</option>
-                        <option value="male" {{ old('gender', $patient->gender) === 'male' ? 'selected' : '' }}>Male</option>
-                        <option value="female" {{ old('gender', $patient->gender) === 'female' ? 'selected' : '' }}>Female</option>
-                        <option value="other" {{ old('gender', $patient->gender) === 'other' ? 'selected' : '' }}>Other</option>
+                        <label for="patient_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Patient <span class="text-red-500">*</span>
+                        </label>
+                        <select name="patient_id" id="patient_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('patient_id') border-red-500 @enderror"
+                                required>
+                            <option value="">Select Patient</option>
+                            @foreach($patients ?? [] as $patientOption)
+                                @if(is_object($patientOption) && $patientOption && is_object($patientOption->user) && $patientOption->user)
+                                    <option value="{{ $patientOption->id ?? '' }}" {{ (string) old('patient_id', $selectedPatientId ?? '') === (string) ($patientOption->id ?? '') ? 'selected' : '' }}>
+                                        {{ $patientOption->user->first_name ?? '' }} {{ $patientOption->user->last_name ?? '' }} - {{ $patientOption->user->email ?? 'No Email' }}
+                                    </option>
+                                @endif
+                            @endforeach
                     </select>
+                        @error('patient_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                 </div>
                 
+                    <!-- Doctor Selection -->
                 <div>
-                    <label for="blood_type" class="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
-                    <select name="blood_type" id="blood_type" class="form-input w-full">
-                        <option value="">Select Blood Type</option>
-                        <option value="A+" {{ old('blood_type', $patient->blood_type) === 'A+' ? 'selected' : '' }}>A+</option>
-                        <option value="A-" {{ old('blood_type', $patient->blood_type) === 'A-' ? 'selected' : '' }}>A-</option>
-                        <option value="B+" {{ old('blood_type', $patient->blood_type) === 'B+' ? 'selected' : '' }}>B+</option>
-                        <option value="B-" {{ old('blood_type', $patient->blood_type) === 'B-' ? 'selected' : '' }}>B-</option>
-                        <option value="AB+" {{ old('blood_type', $patient->blood_type) === 'AB+' ? 'selected' : '' }}>AB+</option>
-                        <option value="AB-" {{ old('blood_type', $patient->blood_type) === 'AB-' ? 'selected' : '' }}>AB-</option>
-                        <option value="O+" {{ old('blood_type', $patient->blood_type) === 'O+' ? 'selected' : '' }}>O+</option>
-                        <option value="O-" {{ old('blood_type', $patient->blood_type) === 'O-' ? 'selected' : '' }}>O-</option>
+                        <label for="doctor_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Doctor <span class="text-red-500">*</span>
+                        </label>
+                        <select name="doctor_id" id="doctor_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('doctor_id') border-red-500 @enderror"
+                                required>
+                            <option value="">Select Doctor</option>
+                            @foreach($doctors ?? [] as $doctor)
+                                @if(is_object($doctor) && $doctor && is_object($doctor->user) && $doctor->user)
+                                    <option value="{{ $doctor->user_id ?? '' }}" {{ (string) old('doctor_id', $selectedDoctorId ?? '') === (string) ($doctor->user_id ?? '') ? 'selected' : '' }}>
+                                        Dr. {{ $doctor->user->first_name ?? '' }} {{ $doctor->user->last_name ?? '' }} - {{ $doctor->specialization ?? 'General' }}
+                                    </option>
+                                @endif
+                            @endforeach
                     </select>
+                        @error('doctor_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                </div>
                 </div>
                 
+                <!-- Chief Complaint -->
                 <div>
-                    <label for="is_active" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select name="is_active" id="is_active" class="form-input w-full">
-                        <option value="1" {{ old('is_active', $patient->is_active) ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ old('is_active', $patient->is_active) ? '' : 'selected' }}>Inactive</option>
-                    </select>
+                    <label for="chief_complaint" class="block text-sm font-medium text-gray-700 mb-2">
+                        Chief Complaint <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="chief_complaint" id="chief_complaint" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('chief_complaint') border-red-500 @enderror"
+                              placeholder="Enter the patient's main complaint or reason for visit..." required>{{ old('chief_complaint', $consultation->chief_complaint) }}</textarea>
+                    @error('chief_complaint')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
-                <!-- Address Information -->
-                <div class="md:col-span-2">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 mt-6">Address Information</h3>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                    <textarea name="address" id="address" rows="3" 
-                              class="form-input w-full" 
-                              placeholder="Enter complete address...">{{ old('address', $patient->address) }}</textarea>
-                </div>
-                
+                <!-- Present Illness -->
                 <div>
-                    <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                    <input type="text" name="city" id="city" 
-                           value="{{ old('city', $patient->city) }}" 
-                           class="form-input w-full" placeholder="e.g., Manila">
+                    <label for="present_illness" class="block text-sm font-medium text-gray-700 mb-2">
+                        Present Illness
+                    </label>
+                    <textarea name="present_illness" id="present_illness" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('present_illness') border-red-500 @enderror"
+                              placeholder="Describe the history and progression of the current illness...">{{ old('present_illness', $consultation->present_illness) }}</textarea>
+                    @error('present_illness')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
+                <!-- Past Medical History -->
                 <div>
-                    <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State/Province</label>
-                    <input type="text" name="state" id="state" 
-                           value="{{ old('state', $patient->state) }}" 
-                           class="form-input w-full" placeholder="e.g., Metro Manila">
+                    <label for="past_medical_history" class="block text-sm font-medium text-gray-700 mb-2">
+                        Past Medical History
+                    </label>
+                    <textarea name="past_medical_history" id="past_medical_history" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('past_medical_history') border-red-500 @enderror"
+                              placeholder="Relevant past medical conditions, surgeries, etc...">{{ old('past_medical_history', $consultation->past_medical_history) }}</textarea>
+                    @error('past_medical_history')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
+                <!-- Current Medications -->
                 <div>
-                    <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                    <input type="text" name="postal_code" id="postal_code" 
-                           value="{{ old('postal_code', $patient->postal_code) }}" 
-                           class="form-input w-full" placeholder="e.g., 1000">
+                    <label for="medications" class="block text-sm font-medium text-gray-700 mb-2">
+                        Current Medications
+                    </label>
+                    <textarea name="medications" id="medications" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('medications') border-red-500 @enderror"
+                              placeholder="List current medications and dosages...">{{ old('medications', $consultation->medications) }}</textarea>
+                    @error('medications')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
+                <!-- Allergies -->
                 <div>
-                    <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                    <input type="text" name="country" id="country" 
-                           value="{{ old('country', $patient->country ?? 'Philippines') }}" 
-                           class="form-input w-full">
-                </div>
-                
-                <!-- Medical Information -->
-                <div class="md:col-span-2">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 mt-6">Medical Information</h3>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="allergies" class="block text-sm font-medium text-gray-700 mb-2">Allergies</label>
-                    <textarea name="allergies" id="allergies" rows="3" 
-                              class="form-input w-full" 
-                              placeholder="List any known allergies...">{{ old('allergies', $patient->allergies) }}</textarea>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="medical_history" class="block text-sm font-medium text-gray-700 mb-2">Medical History</label>
-                    <textarea name="medical_history" id="medical_history" rows="4" 
-                              class="form-input w-full" 
-                              placeholder="Relevant medical history, surgeries, chronic conditions...">{{ old('medical_history', $patient->medical_history) }}</textarea>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="current_medications" class="block text-sm font-medium text-gray-700 mb-2">Current Medications</label>
-                    <textarea name="current_medications" id="current_medications" rows="3" 
-                              class="form-input w-full" 
-                              placeholder="List current medications and dosages...">{{ old('current_medications', $patient->current_medications) }}</textarea>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="family_history" class="block text-sm font-medium text-gray-700 mb-2">Family History</label>
-                    <textarea name="family_history" id="family_history" rows="3" 
-                              class="form-input w-full" 
-                              placeholder="Relevant family medical history...">{{ old('family_history', $patient->family_history) }}</textarea>
-                </div>
-                
-                <div>
-                    <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
-                    <input type="text" name="emergency_contact" id="emergency_contact" 
-                           value="{{ old('emergency_contact', $patient->emergency_contact) }}" 
-                           class="form-input w-full" placeholder="+63 923 456 7890">
-                </div>
-                
-                <div>
-                    <label for="emergency_contact_name" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact Name</label>
-                    <input type="text" name="emergency_contact_name" id="emergency_contact_name" 
-                           value="{{ old('emergency_contact_name', $patient->emergency_contact_name) }}" 
-                           class="form-input w-full" placeholder="e.g., Spouse, Parent">
+                    <label for="allergies" class="block text-sm font-medium text-gray-700 mb-2">
+                        Allergies
+                    </label>
+                    <textarea name="allergies" id="allergies" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('allergies') border-red-500 @enderror"
+                              placeholder="List any known allergies...">{{ old('allergies', $consultation->allergies) }}</textarea>
+                    @error('allergies')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
             
-            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
-                <a href="{{ route('admin.patients.show', $patient) }}" class="btn btn-secondary">
-                    <i class="fas fa-times mr-2"></i>Cancel
+            <!-- Form Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                <a href="{{ route('admin.consultations.show', $consultation) }}" class="btn btn-secondary">
+                    Cancel
                 </a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save mr-2"></i>Update Patient
+                    <i class="fas fa-save mr-2"></i>Update Consultation
                 </button>
             </div>
         </form>

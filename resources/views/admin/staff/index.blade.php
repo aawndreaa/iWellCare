@@ -29,7 +29,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Total Team Members</dt>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Staff Members</dt>
                                 <dd class="text-lg font-medium text-gray-900">{{ $staff->total() }}</dd>
                             </dl>
                         </div>
@@ -86,11 +86,54 @@
             </div>
         </div>
 
+        <!-- Filters and Tabs -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Staff Members</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">A list of all staff members in your organization.</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="?filter=active&t={{ time() }}" class="px-4 py-2 text-sm font-medium rounded-md {{ request('filter') === 'active' || !request('filter') ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700' }}">
+                            Active ({{ $activeCount ?? 0 }})
+                        </a>
+                        <a href="?filter=inactive&t={{ time() }}" class="px-4 py-2 text-sm font-medium rounded-md {{ request('filter') === 'inactive' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-gray-700' }}">
+                            Inactive ({{ $inactiveCount ?? 0 }})
+                        </a>
+                        <a href="?filter=archived&t={{ time() }}" class="px-4 py-2 text-sm font-medium rounded-md {{ request('filter') === 'archived' ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700' }}">
+                            Archived ({{ $archivedCount ?? 0 }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Team Members Table -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
             <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Team Members</h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">A list of all team members in your organization.</p>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    @if(request('filter') === 'active')
+                        Active Staff Members
+                    @elseif(request('filter') === 'inactive')
+                        Inactive Staff Members
+                    @elseif(request('filter') === 'archived')
+                        Archived Staff Members
+                    @else
+                        All Staff Members
+                    @endif
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    @if(request('filter') === 'active')
+                        Currently active staff members.
+                    @elseif(request('filter') === 'inactive')
+                        Currently inactive staff members.
+                    @elseif(request('filter') === 'archived')
+                        Previously archived staff members.
+                    @else
+                        A list of all staff members in your organization.
+                    @endif
+                </p>
             </div>
             
             @if($staff->count() > 0)
@@ -139,13 +182,22 @@
                                         {{ $member->is_active ? 'Deactivate' : 'Activate' }}
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.staff.destroy', $member) }}" class="inline delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="text-red-600 hover:text-red-900 text-sm font-medium btn-open-delete-modal">
-                                        Delete
-                                    </button>
-                                </form>
+                                @if(request('filter') === 'archived')
+                                    <form method="POST" action="{{ route('admin.staff.restore', $member) }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-green-600 hover:text-green-900 text-sm font-medium">
+                                            Restore
+                                        </button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('admin.staff.destroy', $member) }}" class="inline delete-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="text-red-600 hover:text-red-900 text-sm font-medium btn-open-delete-modal">
+                                            Archive
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </li>
@@ -159,11 +211,11 @@
             @else
                 <div class="text-center py-12">
                     <i class="fas fa-users text-4xl text-gray-400 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No team members</h3>
-                    <p class="text-gray-500 mb-6">Get started by adding your first team member.</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No staff members</h3>
+                    <p class="text-gray-500 mb-6">Get started by adding your first staff member.</p>
                     <a href="{{ route('admin.staff.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         <i class="fas fa-plus mr-2"></i>
-                        Add Team Member
+                        Add Staff Member
                     </a>
                 </div>
             @endif
@@ -175,12 +227,12 @@
             <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
                     <div class="px-6 py-5 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
-                        <p class="text-sm text-gray-600 mt-1">Are you sure you want to delete this team member?</p>
+                        <h3 class="text-lg font-semibold text-gray-900">Confirm Archive</h3>
+                        <p class="text-sm text-gray-600 mt-1">Are you sure you want to archive this staff member?</p>
                     </div>
                     <div class="px-6 py-5 flex items-center justify-end space-x-3">
                         <button type="button" id="btnCancelDelete" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
-                        <button type="button" id="btnConfirmDelete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Delete</button>
+                        <button type="button" id="btnConfirmDelete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Archive</button>
                     </div>
                 </div>
             </div>

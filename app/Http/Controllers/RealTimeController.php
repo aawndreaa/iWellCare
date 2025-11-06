@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
-use App\Models\Billing;
+use App\Models\Invoice;
 use App\Models\Consultation;
 use App\Models\Patient;
 use App\Models\User;
@@ -320,11 +320,14 @@ class RealTimeController extends Controller
             'this_week_appointments' => Appointment::whereBetween('appointment_date', [$thisWeek, now()])->count(),
             'this_month_appointments' => Appointment::whereBetween('appointment_date', [$thisMonth, now()])->count(),
             'pending_appointments' => Appointment::where('status', 'pending')->count(),
-            'total_patients' => Patient::count(),
+            'total_patients' => Patient::query()->count(),
             'total_doctors' => User::where('role', 'doctor')->count(),
             'consultations_today' => Consultation::whereDate('created_at', $today)->count(),
-            'total_billings' => Billing::count(),
-            'pending_billings' => Billing::where('status', 'pending')->count(),
+            'total_invoices' => Invoice::count(),
+            'pending_invoices' => Invoice::where('status', 'pending')->count(),
+            'total_staff' => User::where('role', 'staff')->count(),
+            'active_staff' => User::where('role', 'staff')->where('is_active', true)->count(),
+            'inactive_staff' => User::where('role', 'staff')->where('is_active', false)->count(),
         ];
     }
 
@@ -356,7 +359,7 @@ class RealTimeController extends Controller
                 ->whereBetween('created_at', [$thisMonth, now()])
                 ->count(),
             'total_prescriptions' => 0, // Add when prescription model is available
-            'unpaid_invoices' => Billing::where('patient_id', $patient->id)
+            'unpaid_invoices' => Invoice::where('patient_id', $patient->id)
                 ->where('status', 'pending')
                 ->count(),
         ];

@@ -37,6 +37,12 @@
             opacity: 0.9;
             font-size: 16px;
         }
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
         .content {
             padding: 40px;
         }
@@ -129,7 +135,6 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <div class="logo">🏥 iWellCare</div>
             <h1>Appointment Declined</h1>
             <p>We're sorry for the inconvenience</p>
         </div>
@@ -150,19 +155,19 @@
                 <h3>Appointment Details</h3>
                 <div class="appointment-detail">
                     <span class="detail-label">📅 Date:</span>
-                    <span class="detail-value">{{ $appointment->date }}</span>
+                    <span class="detail-value">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('M d, Y') }}</span>
                 </div>
                 <div class="appointment-detail">
                     <span class="detail-label">⏰ Time:</span>
-                    <span class="detail-value">{{ $appointment->time }}</span>
+                    <span class="detail-value">{{ $appointment->appointment_time ? \Carbon\Carbon::parse($appointment->appointment_time)->format('g:i A') : 'Not specified' }}</span>
                 </div>
                 <div class="appointment-detail">
                     <span class="detail-label">👨‍⚕️ Doctor:</span>
-                    <span class="detail-value">{{ $appointment->doctor_name }}</span>
+                    <span class="detail-value">{{ $appointment->doctor ? $appointment->doctor->user->first_name . ' ' . $appointment->doctor->user->last_name : 'Not assigned' }}</span>
                 </div>
                 <div class="appointment-detail">
-                    <span class="detail-label">📋 Reason:</span>
-                    <span class="detail-value">{{ $appointment->reason }}</span>
+                    <span class="detail-label">📋 Type:</span>
+                    <span class="detail-value">{{ ucfirst($appointment->type) }}</span>
                 </div>
             </div>
 

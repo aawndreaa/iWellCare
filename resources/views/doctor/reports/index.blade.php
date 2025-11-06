@@ -109,7 +109,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Revenue</span>
-                            <span class="font-bold text-gray-900">₱{{ number_format($monthlyStats['current']['revenue'], 2) }}</span>
+                            <span class="font-bold text-gray-900">₱{{ number_format($monthlyStats['current']['revenue'], 0) }}</span>
                         </div>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Revenue</span>
-                            <span class="font-bold text-gray-900">₱{{ number_format($monthlyStats['last']['revenue'], 2) }}</span>
+                            <span class="font-bold text-gray-900">₱{{ number_format($monthlyStats['last']['revenue'], 0) }}</span>
                         </div>
                     </div>
                 </div>
@@ -279,7 +279,9 @@
                 <span class="font-semibold text-gray-900">Monthly Sales</span>
                 <span class="text-sm text-gray-600 mb-2">PDF Report</span>
                 <div class="flex flex-row flex-wrap justify-center gap-2 mt-2 w-full">
-                    <button type="button" class="btn-primary btn-xs" onclick="printReport('monthly_sales')"><i class="fas fa-print mr-1"></i>Print</button>
+                    <button type="button" class="btn-primary btn-xs" onclick="previewReport('monthly_sales')"><i class="fas fa-eye mr-1"></i>Preview</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('monthly_sales', 'pdf')"><i class="fas fa-download mr-1"></i>PDF</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('monthly_sales', 'csv')"><i class="fas fa-file-csv mr-1"></i>Excel</button>
                 </div>
             </div>
             <!-- Patient Report -->
@@ -288,7 +290,9 @@
                 <span class="font-semibold text-gray-900">Patient Report</span>
                 <span class="text-sm text-gray-600 mb-2">PDF Report</span>
                 <div class="flex flex-row flex-wrap justify-center gap-2 mt-2 w-full">
-                    <button type="button" class="btn-primary btn-xs" onclick="printReport('patient')"><i class="fas fa-print mr-1"></i>Print</button>
+                    <button type="button" class="btn-primary btn-xs" onclick="previewReport('patient')"><i class="fas fa-eye mr-1"></i>Preview</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('patient', 'pdf')"><i class="fas fa-download mr-1"></i>PDF</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('patient', 'csv')"><i class="fas fa-file-csv mr-1"></i>Excel</button>
                 </div>
             </div>
             <!-- Consultation Report -->
@@ -297,7 +301,9 @@
                 <span class="font-semibold text-gray-900">Consultation Report</span>
                 <span class="text-sm text-gray-600 mb-2">PDF Report</span>
                 <div class="flex flex-row flex-wrap justify-center gap-2 mt-2 w-full">
-                    <button type="button" class="btn-primary btn-xs" onclick="printReport('consultation')"><i class="fas fa-print mr-1"></i>Print</button>
+                    <button type="button" class="btn-primary btn-xs" onclick="previewReport('consultation')"><i class="fas fa-eye mr-1"></i>Preview</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('consultation', 'pdf')"><i class="fas fa-download mr-1"></i>PDF</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('consultation', 'csv')"><i class="fas fa-file-csv mr-1"></i>Excel</button>
                 </div>
             </div>
             <!-- Inventory Report -->
@@ -306,7 +312,9 @@
                 <span class="font-semibold text-gray-900">Inventory Report</span>
                 <span class="text-sm text-gray-600 mb-2">PDF Report</span>
                 <div class="flex flex-row flex-wrap justify-center gap-2 mt-2 w-full">
-                    <button type="button" class="btn-primary btn-xs" onclick="printReport('inventory')"><i class="fas fa-print mr-1"></i>Print</button>
+                    <button type="button" class="btn-primary btn-xs" onclick="previewReport('inventory')"><i class="fas fa-eye mr-1"></i>Preview</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('inventory', 'pdf')"><i class="fas fa-download mr-1"></i>PDF</button>
+                    <button type="button" class="btn-secondary btn-xs" onclick="exportReport('inventory', 'csv')"><i class="fas fa-file-csv mr-1"></i>Excel</button>
                 </div>
             </div>
         </div>
@@ -357,8 +365,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         document.body.removeChild(form);
     }
-    window.printReport = function(type) {
-        console.log('Print clicked:', type);
+    window.previewReport = function(type) {
+        console.log('Preview clicked:', type);
         try {
             let url = '';
             switch(type) {
@@ -375,26 +383,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     url = '/doctor/reports/inventory-report?print=1';
                     break;
                 default:
-                    ModalUtils.showError('Print Error', 'Unknown report type.');
+                    ModalUtils.showError('Preview Error', 'Unknown report type.');
                     return;
             }
 
-            // Open report page in new window for printing
-            var printWindow = window.open(url, '_blank', 'width=1200,height=800');
-            if (!printWindow) {
-                ModalUtils.showError('Print Error', 'Popup blocked. Please allow popups and try again.');
+            // Open report page in new window for preview
+            var previewWindow = window.open(url, '_blank', 'width=1200,height=800');
+            if (!previewWindow) {
+                ModalUtils.showError('Preview Error', 'Popup blocked. Please allow popups and try again.');
                 return;
             }
 
-            // Wait for the page to load, then trigger print
-            printWindow.onload = function() {
-                setTimeout(function() {
-                    printWindow.print();
-                }, 1000);
-            };
-
         } catch (e) {
-            ModalUtils.showError('Print Failed', 'Could not open the print dialog. Please try again.');
+            ModalUtils.showError('Preview Failed', 'Could not open the preview window. Please try again.');
         }
     }
     window.shareReport = function(type) {

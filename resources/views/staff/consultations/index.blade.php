@@ -6,12 +6,6 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Header with Actions -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Consultations</h2>
-            <p class="text-gray-600">Manage patient consultations and medical records</p>
-        </div>
         <div class="flex gap-3">
             <a href="{{ route('staff.consultations.create') }}" class="btn btn-primary flex items-center gap-2">
                 <i class="fas fa-plus"></i>
@@ -53,8 +47,8 @@
                     <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-calendar text-purple-600 text-2xl"></i>
                     </div>
-                    <div class="text-gray-500 text-sm font-medium mb-1">Today</div>
-                    <div class="text-3xl font-bold text-purple-700 mb-2">{{ $consultations->where('consultation_date', today())->count() }}</div>
+                    <div class="text-gray-500 text-sm font-medium mb-1">Recent</div>
+                    <div class="text-3xl font-bold text-purple-700 mb-2">{{ $consultations->where('created_at', '>=', now()->startOfDay())->count() }}</div>
                     <div class="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Today</div>
                 </div>
             </div>
@@ -66,11 +60,23 @@
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">All Consultations</h3>
                         </div>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
+                        <div class="flex gap-4">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="searchInput" placeholder="Search consultations...">
                             </div>
-                            <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="searchInput" placeholder="Search consultations...">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-filter text-gray-400"></i>
+                                </div>
+                                <select id="statusFilter" class="block pl-10 pr-8 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="">All Status</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -80,7 +86,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chief Complaint</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -114,7 +120,6 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $consultation->consultation_date->format('M d, Y') }}</div>
                                         <div class="text-sm text-gray-500">{{ $consultation->created_at->format('g:i A') }}</div>
                                     </td>
                                     <td class="px-6 py-4">
@@ -176,20 +181,40 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value.toLowerCase();
         const tableRows = document.querySelectorAll('tbody tr');
-        
+
         tableRows.forEach(row => {
             const text = row.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
+            const statusCell = row.querySelector('td:nth-child(4)'); // Status column
+            const statusText = statusCell ? statusCell.textContent.toLowerCase().trim() : '';
+
+            const matchesSearch = text.includes(searchTerm);
+            const matchesStatus = !statusValue || statusText.includes(statusValue.replace('_', ' '));
+
+            if (matchesSearch && matchesStatus) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
             }
         });
+    }
+
+    // Auto-filter on input
+    searchInput.addEventListener('input', function() {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(filterTable, 300);
     });
+
+    // Auto-filter on status change
+    statusFilter.addEventListener('change', filterTable);
+
+    // Initial filter
+    filterTable();
 });
 </script>
 @endpush

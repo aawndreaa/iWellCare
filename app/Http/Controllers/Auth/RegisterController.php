@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class RegisterController extends Controller
 {
@@ -61,14 +62,16 @@ class RegisterController extends Controller
             'username' => [
                 'required',
                 'string',
-                'unique:users',
+                Rule::unique('users', 'username')->whereNull('deleted_at'),
                 new ValidUsername,
             ],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')],
             'phone_number' => ['required', 'string', 'max:20'],
             'street_address' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'state_province' => ['required', 'string', 'max:255'],
+            'region' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:255'],
+            'municipality' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:20'],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'gender' => ['required', 'in:male,female,other'],
@@ -87,10 +90,9 @@ class RegisterController extends Controller
             'username.max' => 'Username cannot exceed 20 characters.',
             'username.not_regex' => 'This username is not allowed for security reasons.',
             'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 10 characters long.',
+            'password.min' => 'Password must be at least 6 characters long.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
-            'password.not_regex' => 'Password cannot contain common patterns or more than 2 consecutive identical characters.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
         ]);
     }
 
@@ -106,17 +108,18 @@ class RegisterController extends Controller
             $user = User::create([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
+                'full_name' => trim(($data['first_name'] ?? '').' '.($data['last_name'] ?? '')),
                 'username' => $data['username'],
                 'email' => $data['email'],
                 'phone_number' => $data['phone_number'],
                 'street_address' => $data['street_address'],
-                'city' => $data['city'],
-                'state_province' => $data['state_province'],
+                'city' => $data['municipality'],
+                'state_province' => $data['province'],
                 'postal_code' => $data['postal_code'] ?? null,
                 'date_of_birth' => $data['date_of_birth'],
                 'gender' => $data['gender'],
                 'password' => Hash::make($data['password']),
-                'role' => 'patient', // Default role for registration
+                'role' => $data['role'] ?? 'patient', // Allow role to be set from data
                 'is_active' => true,
             ]);
 
@@ -128,7 +131,7 @@ class RegisterController extends Controller
                 'last_name' => $data['last_name'],
                 'contact' => $data['phone_number'],
                 'email' => $data['email'],
-                'address' => $data['street_address'].', '.$data['city'].', '.$data['state_province'],
+                'address' => $data['street_address'].', '.$data['municipality'].', '.$data['province'],
                 'date_of_birth' => $data['date_of_birth'],
                 'gender' => $data['gender'],
                 'blood_type' => $data['blood_type'] ?? null,

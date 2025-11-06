@@ -31,6 +31,11 @@ class CheckRole
             return $next($request);
         }
 
+        // Staff users can access admin routes for consultations (temporary fix)
+        if ($user->role === 'staff' && str_starts_with($request->route()->getName(), 'admin.consultations')) {
+            return $next($request);
+        }
+
         // Check if user has the required role
         if ($user->role !== $role) {
             abort(403, 'Unauthorized access.');

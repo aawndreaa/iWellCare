@@ -109,11 +109,11 @@ class Consultation extends Model
     }
 
     /**
-     * Get the billing record for this consultation.
+     * Get the invoice record for this consultation.
      */
-    public function billing()
+    public function invoice()
     {
-        return $this->hasOne(Billing::class);
+        return $this->hasOne(Invoice::class);
     }
 
     /**

@@ -26,37 +26,7 @@ class StrongPassword implements Rule
     public function passes($attribute, $value)
     {
         // Check minimum length
-        if (strlen($value) < 10) {
-            return false;
-        }
-
-        // Check for uppercase letter
-        if (! preg_match('/[A-Z]/', $value)) {
-            return false;
-        }
-
-        // Check for lowercase letter
-        if (! preg_match('/[a-z]/', $value)) {
-            return false;
-        }
-
-        // Check for number
-        if (! preg_match('/\d/', $value)) {
-            return false;
-        }
-
-        // Check for special character
-        if (! preg_match('/[@$!%*?&]/', $value)) {
-            return false;
-        }
-
-        // Check for consecutive identical characters (max 2)
-        if (preg_match('/(.)\1{2,}/', $value)) {
-            return false;
-        }
-
-        // Check for common patterns
-        if (preg_match('/^(123|abc|qwe|asd|password|123456|qwerty)/i', $value)) {
+        if (strlen($value) < 6) {
             return false;
         }
 
@@ -70,6 +40,6 @@ class StrongPassword implements Rule
      */
     public function message()
     {
-        return 'The :attribute must be at least 10 characters long and contain at least one uppercase letter, one lowercase letter, one number, one special character (@$!%*?&), and cannot contain common patterns or more than 2 consecutive identical characters.';
+        return 'The :attribute must be at least 6 characters long.';
     }
 }

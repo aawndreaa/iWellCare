@@ -70,18 +70,15 @@ class ProfileController extends Controller
             'email' => 'required|email|unique:users,email,'.$user->id,
             'phone_number' => 'required|string|max:20',
             'street_address' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
+            'region' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'municipality' => 'required|string|max:255',
+            'barangay' => 'required|string|max:255',
+            'postal_code' => 'nullable|string|max:10',
             'contact' => 'required|string|max:20',
             'date_of_birth' => 'required|date',
             'gender' => 'required|in:male,female,other',
             'blood_type' => 'nullable|string|max:10',
-            'emergency_contact' => 'required|string|max:255',
-            'emergency_contact_phone' => 'required|string|max:20',
-            'medical_history' => 'nullable|string',
-            'allergies' => 'nullable|string',
-            'current_medications' => 'nullable|string',
-            'insurance_provider' => 'nullable|string|max:255',
-            'insurance_number' => 'nullable|string|max:255',
             // Password validation rules
             'current_password' => 'nullable|string',
             'new_password' => 'nullable|string|min:8|confirmed',
@@ -98,46 +95,52 @@ class ProfileController extends Controller
             }
         }
 
-        // Update user information
-        $userData = [
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'street_address' => $request->street_address,
-            'city' => $request->city,
-        ];
+        // Update user information - only update provided fields
+        $userData = [];
+
+        if ($request->filled('first_name')) $userData['first_name'] = $request->first_name;
+        if ($request->filled('last_name')) $userData['last_name'] = $request->last_name;
+        if ($request->filled('email')) $userData['email'] = $request->email;
+        if ($request->filled('phone_number')) $userData['phone_number'] = $request->phone_number;
+        if ($request->filled('street_address')) $userData['street_address'] = $request->street_address;
+        if ($request->filled('region')) $userData['region'] = $request->region;
+        if ($request->filled('province')) $userData['province'] = $request->province;
+        if ($request->filled('municipality')) $userData['municipality'] = $request->municipality;
+        if ($request->filled('barangay')) $userData['barangay'] = $request->barangay;
+        if ($request->filled('postal_code')) $userData['postal_code'] = $request->postal_code;
 
         // Update password if provided
         if ($request->filled('new_password')) {
             $userData['password'] = Hash::make($request->new_password);
         }
 
-        $user->update($userData);
+        if (!empty($userData)) {
+            $user->update($userData);
+            // Refresh the authenticated user instance and update the session
+            $user = $user->fresh();
+            auth()->login($user);
+        }
 
-        // Refresh the authenticated user instance and update the session
-        $user = $user->fresh();
-        auth()->login($user);
+        // Update patient information - only update provided fields
+        $patientData = [];
 
-        // Update patient information
-        $patient->update([
-            'full_name' => trim(($request->first_name ?? '').' '.($request->last_name ?? '')),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'contact' => $request->contact,
-            'email' => $request->email,
-            'address' => $request->street_address.', '.$request->city,
-            'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
-            'blood_type' => $request->blood_type,
-            'emergency_contact' => $request->emergency_contact,
-            'emergency_contact_phone' => $request->emergency_contact_phone,
-            'medical_history' => $request->medical_history,
-            'allergies' => $request->allergies,
-            'current_medications' => $request->current_medications,
-            'insurance_provider' => $request->insurance_provider,
-            'insurance_number' => $request->insurance_number,
-        ]);
+        if ($request->filled('first_name') || $request->filled('last_name')) {
+            $patientData['full_name'] = trim(($request->first_name ?? $user->first_name).' '.($request->last_name ?? $user->last_name));
+        }
+        if ($request->filled('first_name')) $patientData['first_name'] = $request->first_name;
+        if ($request->filled('last_name')) $patientData['last_name'] = $request->last_name;
+        if ($request->filled('contact')) $patientData['contact'] = $request->contact;
+        if ($request->filled('email')) $patientData['email'] = $request->email;
+        if ($request->filled(['street_address', 'barangay', 'municipality', 'province', 'region'])) {
+            $patientData['address'] = ($request->street_address ?? $user->street_address).', '.($request->barangay ?? $user->barangay).', '.($request->municipality ?? $user->municipality).', '.($request->province ?? $user->province).', '.($request->region ?? $user->region);
+        }
+        if ($request->filled('date_of_birth')) $patientData['date_of_birth'] = $request->date_of_birth;
+        if ($request->filled('gender')) $patientData['gender'] = $request->gender;
+        if ($request->filled('blood_type')) $patientData['blood_type'] = $request->blood_type;
+
+        if (!empty($patientData)) {
+            $patient->update($patientData);
+        }
 
         $message = 'Profile updated successfully!';
         if ($request->filled('new_password')) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\Doctor;
 use App\Models\Invoice;
 use App\Models\Patient;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -20,10 +21,36 @@ class InvoiceController extends Controller
 
     public function create()
     {
-        $patients = Patient::all();
-        $appointments = Appointment::with('patient')->get();
+        // Working hours: 9:00 AM to 5:00 PM (09:00:00 to 17:00:00)
+        $workingHoursStart = '09:00:00';
+        $workingHoursEnd = '17:00:00';
 
-        return view('admin.invoice.create', compact('patients', 'appointments'));
+        // Get patients who have appointments within working hours
+        $patients = Patient::whereHas('appointments', function ($query) use ($workingHoursStart, $workingHoursEnd) {
+            $query->whereTime('appointment_time', '>=', $workingHoursStart)
+                  ->whereTime('appointment_time', '<=', $workingHoursEnd)
+                  ->whereIn('status', ['confirmed', 'completed']);
+        })->with('user')->get();
+
+        // Get appointments within working hours
+        $appointments = Appointment::with('patient')
+            ->whereTime('appointment_time', '>=', $workingHoursStart)
+            ->whereTime('appointment_time', '<=', $workingHoursEnd)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->get();
+
+        // Get default doctor (Dr. Augustus Caesar Butch B. Bigornia)
+        $defaultDoctor = Doctor::whereHas('user', function ($query) {
+            $query->where('first_name', 'Augustus Caesar Butch B.')
+                  ->where('last_name', 'Bigornia');
+        })->with('user')->first();
+
+        // Fallback to any active doctor if default not found
+        if (!$defaultDoctor) {
+            $defaultDoctor = Doctor::with('user')->where('status', 'active')->first();
+        }
+
+        return view('admin.invoice.create', compact('patients', 'appointments', 'defaultDoctor'));
     }
 
     public function store(Request $request)
@@ -35,15 +62,32 @@ class InvoiceController extends Controller
             'medication_fee' => 'nullable|numeric|min:0',
             'laboratory_fee' => 'nullable|numeric|min:0',
             'other_fees' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'less_sc' => 'nullable|numeric|min:0',
             'status' => 'required|in:paid,unpaid',
             'payment_date' => 'required|date',
         ]);
 
-        // Calculate total amount
-        $total_amount = $request->consultation_fee +
-                       ($request->medication_fee ?? 0) +
-                       ($request->laboratory_fee ?? 0) +
-                       ($request->other_fees ?? 0);
+        // Calculate total sales
+        $total_sales = $request->consultation_fee +
+                      ($request->medication_fee ?? 0) +
+                      ($request->laboratory_fee ?? 0) +
+                      ($request->other_fees ?? 0);
+
+        // Calculate discount amount from percentage
+        $discount_percentage = $request->discount_percentage ?? 0;
+        $discount = $total_sales * ($discount_percentage / 100);
+        
+        // Use manually entered discount amount if provided (for backward compatibility)
+        if ($request->has('less_sc') && $request->less_sc > 0) {
+            $discount = $request->less_sc;
+        }
+
+        // Calculate net of discount
+        $net_of_sc = $total_sales - $discount;
+
+        // Calculate total amount (grand total)
+        $total_amount = $net_of_sc;
 
         // Generate invoice number
         $year = date('Y');
@@ -67,20 +111,21 @@ class InvoiceController extends Controller
             'date_issued' => now()->toDateString(),
             'invoice_type' => 'medical_service',
             'article' => 'Medical Services',
-            'unit_cost' => $total_amount,
+            'unit_cost' => $total_sales,
             'quantity' => 1,
             'amount' => $total_amount,
             'consultation_fee' => $request->consultation_fee,
             'medication_fee' => $request->medication_fee ?? 0,
             'laboratory_fee' => $request->laboratory_fee ?? 0,
             'other_fees' => $request->other_fees ?? 0,
-            'total_sales' => $total_amount,
-            'less_sc' => 0,
-            'net_of_sc' => $total_amount,
+            'total_sales' => $total_sales,
+            'less_sc' => $discount,
+            'net_of_sc' => $net_of_sc,
             'withholding' => 0,
             'grand_total' => $total_amount,
             'status' => $request->status,
             'payment_date' => $request->payment_date,
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('admin.invoice.index')->with('success', 'Invoice created successfully.');

@@ -18,11 +18,26 @@ class StaffController extends Controller
     public function index()
     {
         try {
-            $staff = User::where('role', 'staff')
-                ->orderBy('created_at', 'desc')
-                ->paginate(15);
+            $query = User::where('role', 'staff');
 
-            return view('doctor.staff.index', compact('staff'));
+            // Apply filters
+            if (request('filter') === 'active') {
+                $query->where('is_active', true);
+            } elseif (request('filter') === 'inactive') {
+                $query->where('is_active', false);
+            } elseif (request('filter') === 'archived') {
+                $query->onlyTrashed(); // This will show soft deleted records
+            }
+
+            $staff = $query->orderBy('created_at', 'desc')->paginate(15);
+
+            // Get counts for display
+            $totalStaff = User::where('role', 'staff')->count();
+            $activeStaff = User::where('role', 'staff')->where('is_active', true)->count();
+            $inactiveStaff = User::where('role', 'staff')->where('is_active', false)->count();
+            $archivedCount = User::where('role', 'staff')->onlyTrashed()->count();
+
+            return view('doctor.staff.index', compact('staff', 'totalStaff', 'activeStaff', 'inactiveStaff', 'archivedCount'));
         } catch (\Exception $e) {
             return 'Error: '.$e->getMessage();
         }
@@ -81,6 +96,7 @@ class StaffController extends Controller
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
+            'full_name' => trim($request->first_name . ' ' . $request->last_name),
             'email' => $request->email ?: null,
             'username' => $request->username,
             'password' => Hash::make($request->password),
@@ -130,7 +146,7 @@ class StaffController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore($staff->id)],
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore($staff)],
             'phone_number' => 'nullable|string|max:20',
             'street_address' => 'nullable|string|max:500',
             'city' => 'nullable|string|max:255',
@@ -199,5 +215,24 @@ class StaffController extends Controller
 
         return redirect()->route('doctor.staff.index')
             ->with('success', "Staff member {$status} successfully.");
+    }
+
+    /**
+     * Restore a soft deleted staff member.
+     */
+    public function restore($id)
+    {
+        $staff = User::withTrashed()->findOrFail($id);
+
+        // Ensure it's a staff member
+        if ($staff->role !== 'staff') {
+            return redirect()->route('doctor.staff.index')
+                ->with('error', 'Invalid staff member.');
+        }
+
+        $staff->restore();
+
+        return redirect()->route('doctor.staff.index')
+            ->with('success', 'Staff member restored successfully.');
     }
 }

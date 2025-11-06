@@ -4,7 +4,7 @@
 @section('page-subtitle', 'Schedule an appointment with a doctor')
 @section('content')
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto px-4">
     <!-- Breadcrumb -->
     <div class="mb-6">
         <nav class="flex" aria-label="Breadcrumb">
@@ -31,21 +31,21 @@
         </nav>
     </div>
 
-    <div class="bg-white rounded-xl shadow-lg p-8">
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
         <!-- Header Section -->
-        <div class="mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-3">Book Your Appointment</h2>
-            <p class="text-gray-600 text-lg">Please fill in the details below to schedule your appointment.</p>
-            
-            <!-- Info Banner -->
-            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="mb-6 md:mb-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Book Your Appointment</h2>
+            <p class="text-gray-600 text-base md:text-lg">Please fill in the details below to schedule your appointment.</p>
+
+            <!-- Clinic Hours Info -->
+            <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div class="flex items-start">
-                    <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
+                    <i class="fas fa-clock text-green-600 mr-3 mt-1"></i>
                     <div>
-                        <p class="text-blue-700 font-medium">Important Information</p>
-                        <p class="text-blue-600 text-sm mt-1">
-                            Doctors marked in red are currently unavailable and cannot be selected for appointments. 
-                            Please choose an available doctor to proceed.
+                        <p class="text-green-700 font-medium">Clinic Operating Hours</p>
+                        <p class="text-green-600 text-sm mt-1">
+                            <strong>Monday - Saturday:</strong> 9:00 AM - 2:00 PM<br>
+                            <strong>Sunday:</strong> Closed
                         </p>
                     </div>
                 </div>
@@ -57,53 +57,13 @@
             
             <div class="space-y-6">
                 <!-- Doctor Selection -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <label for="doctor_id" class="block text-xl font-semibold text-gray-900 mb-4">
+                <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                    <label for="doctor_id" class="block text-lg md:text-xl font-semibold text-gray-900 mb-4">
                         <i class="fas fa-user-md mr-3 text-blue-600"></i>Select Doctor
                     </label>
                     
-                    @if($defaultDoctor)
-                        <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-green-600 mr-2"></i>
-                                <span class="text-green-700 text-sm font-medium">
-                                    Dr. {{ $defaultDoctor->user->first_name }} {{ $defaultDoctor->user->last_name }} is pre-selected as your default doctor
-                                </span>
-                            </div>
-                        </div>
-                    @endif
                     
-                    <!-- Doctor Availability Status -->
-                    <div class="mb-4">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Doctor Availability Status:</h4>
-                        <div class="space-y-2">
-                            @forelse($doctors as $doctor)
-                                <div class="flex items-center justify-between p-2 rounded-lg {{ $doctor->current_availability['is_available'] ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200' }}">
-                                    <div class="flex items-center">
-                                        <div class="w-3 h-3 rounded-full mr-3 {{ $doctor->current_availability['is_available'] ? 'bg-green-500' : 'bg-red-500' }}"></div>
-                                        <span class="font-medium text-gray-900">
-                                            Dr. {{ $doctor->user ? $doctor->user->first_name . ' ' . $doctor->user->last_name : 'Unknown Doctor' }}
-                                        </span>
-                                        <span class="text-sm text-gray-600 ml-2">({{ $doctor->specialization ?? 'General' }})</span>
-                                    </div>
-                                    <div class="text-sm font-medium {{ $doctor->current_availability['is_available'] ? 'text-green-700' : 'text-red-700' }}">
-                                        @if($doctor->current_availability['is_available'])
-                                            <i class="fas fa-check-circle mr-1"></i>Available
-                                        @else
-                                            <i class="fas fa-times-circle mr-1"></i>{{ $doctor->current_availability['message'] }}
-                                        @endif
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-4 text-gray-500">
-                                    <i class="fas fa-user-md text-2xl mb-2"></i>
-                                    <p>No doctors available at the moment.</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                    
-                    <select name="doctor_id" id="doctor_id" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-colors" required>
+                    <select name="doctor_id" id="doctor_id" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base md:text-lg transition-colors" required>
                         <option value="">Choose a doctor...</option>
                         @foreach($doctors as $doctor)
                             <option value="{{ $doctor->id }}"
@@ -139,16 +99,6 @@
                         </div>
                     </div>
                     
-                    <!-- Real-time Availability Update -->
-                    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div class="flex items-center">
-                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                            <span class="text-blue-700 text-sm">
-                                <strong>Note:</strong> Availability status is updated in real-time. Unavailable doctors cannot be selected for appointments.
-                            </span>
-                        </div>
-                    </div>
-                    
                     @error('doctor_id')
                         <p class="text-red-600 text-sm mt-3 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>{{ $message }}
@@ -157,13 +107,13 @@
                 </div>
 
                 <!-- Appointment Details Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                     <!-- Appointment Type -->
-                    <div class="bg-gray-50 rounded-xl p-6">
-                        <label for="type" class="block text-xl font-semibold text-gray-900 mb-4">
+                    <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                        <label for="type" class="block text-lg md:text-xl font-semibold text-gray-900 mb-4">
                             <i class="fas fa-stethoscope mr-3 text-blue-600"></i>Appointment Type
                         </label>
-                        <select name="type" id="type" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-colors" required>
+                        <select name="type" id="type" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base md:text-lg transition-colors" required>
                             <option value="">Select appointment type...</option>
                             <option value="checkup" {{ old('type') == 'checkup' ? 'selected' : '' }}>Regular Checkup</option>
                             <option value="consultation" {{ old('type') == 'consultation' ? 'selected' : '' }}>Consultation</option>
@@ -178,14 +128,19 @@
                     </div>
 
                     <!-- Appointment Date -->
-                    <div class="bg-gray-50 rounded-xl p-6">
-                        <label for="appointment_date" class="block text-xl font-semibold text-gray-900 mb-4">
+                    <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                        <label for="appointment_date" class="block text-lg md:text-xl font-semibold text-gray-900 mb-4">
                             <i class="fas fa-calendar mr-3 text-blue-600"></i>Appointment Date
                         </label>
-                        <input type="date" name="appointment_date" id="appointment_date" 
-                               value="{{ old('appointment_date') }}"
-                               min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-colors" required>
+                        <input type="date" name="appointment_date" id="appointment_date"
+                                value="{{ old('appointment_date') }}"
+                                min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base md:text-lg transition-colors" required
+                                data-weekend-disabled="true">
+                        <p class="text-gray-600 text-sm mt-2 flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                            Appointments are available Monday through Saturday only (Sunday closed)
+                        </p>
                         @error('appointment_date')
                             <p class="text-red-600 text-sm mt-3 flex items-center">
                                 <i class="fas fa-exclamation-circle mr-2"></i>{{ $message }}
@@ -195,12 +150,12 @@
                 </div>
 
                 <!-- Time Selection -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <label for="appointment_time" class="block text-xl font-semibold text-gray-900 mb-4">
+                <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                    <label for="appointment_time" class="block text-lg md:text-xl font-semibold text-gray-900 mb-4">
                         <i class="fas fa-clock mr-3 text-blue-600"></i>Appointment Time
                     </label>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <select name="appointment_time" id="appointment_time" class="col-span-2 md:col-span-3 lg:col-span-4 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-colors" required>
+                        <select name="appointment_time" id="appointment_time" class="col-span-2 md:col-span-3 lg:col-span-4 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base md:text-lg transition-colors" required>
                             <option value="">Select time...</option>
                             <option value="09:00:00" {{ old('appointment_time') == '09:00:00' ? 'selected' : '' }}>9:00 AM</option>
                             <option value="09:30:00" {{ old('appointment_time') == '09:30:00' ? 'selected' : '' }}>9:30 AM</option>
@@ -225,13 +180,13 @@
                 </div>
 
                 <!-- Notes -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <label for="notes" class="block text-xl font-semibold text-gray-900 mb-4">
+                <div class="bg-gray-50 rounded-xl p-4 md:p-6">
+                    <label for="notes" class="block text-lg md:text-xl font-semibold text-gray-900 mb-4">
                         <i class="fas fa-notes-medical mr-3 text-blue-600"></i>Additional Notes (Optional)
                     </label>
-                    <textarea name="notes" id="notes" rows="6" 
+                    <textarea name="notes" id="notes" rows="6"
                               placeholder="Please describe your symptoms, reason for the appointment, or any special requirements..."
-                              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg resize-none transition-colors">{{ old('notes') }}</textarea>
+                              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base md:text-lg resize-none transition-colors">{{ old('notes') }}</textarea>
                     <p class="text-gray-500 text-sm mt-2">This information helps us prepare for your appointment</p>
                     @error('notes')
                         <p class="text-red-600 text-sm mt-3 flex items-center">
@@ -242,11 +197,11 @@
 
                 <!-- Submit Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                    <button type="submit" class="btn btn-primary flex-1 text-lg py-4 px-8 rounded-xl transition-all duration-200 hover:scale-105">
+                    <button type="submit" class="btn btn-primary flex-1 text-base md:text-lg py-4 px-8 rounded-xl transition-all duration-200 hover:scale-105">
                         <i class="fas fa-calendar-plus mr-3"></i>
                         Book Appointment
                     </button>
-                    <a href="{{ route('patient.appointments.index') }}" class="btn btn-secondary flex-1 text-lg py-4 px-8 rounded-xl transition-all duration-200">
+                    <a href="{{ route('patient.appointments.index') }}" class="btn btn-secondary flex-1 text-base md:text-lg py-4 px-8 rounded-xl transition-all duration-200">
                         <i class="fas fa-arrow-left mr-3"></i>
                         Back to Appointments
                     </a>
@@ -319,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const doctorSelect = document.getElementById('doctor_id');
     const submitButton = document.querySelector('button[type="submit"]');
     const form = document.querySelector('form');
+    const appointmentDateInput = document.getElementById('appointment_date');
     
     // Function to check if selected doctor is available
     function checkDoctorAvailability() {
@@ -395,5 +351,62 @@ document.addEventListener('DOMContentLoaded', function() {
     formFields.forEach(field => {
         field.classList.add('form-field');
     });
+
+    // Disable weekends (Sunday) for appointment booking
+    if (appointmentDateInput) {
+        appointmentDateInput.addEventListener('input', function() {
+            const selectedDate = new Date(this.value);
+            const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+            if (dayOfWeek === 0) { // Sunday
+                // Show error message
+                showDateWarning('Appointments are not available on Sundays. Please select a date from Monday to Saturday.');
+                this.value = ''; // Clear the invalid date
+            } else {
+                hideDateWarning();
+            }
+        });
+
+        // Also prevent manual typing of Sunday dates
+        appointmentDateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const dayOfWeek = selectedDate.getDay();
+
+            if (dayOfWeek === 0) {
+                showDateWarning('Appointments are not available on Sundays. Please select a date from Monday to Saturday.');
+                this.value = '';
+            } else {
+                hideDateWarning();
+            }
+        });
+    }
+
+    // Function to show date warning
+    function showDateWarning(message) {
+        let warningDiv = document.getElementById('date-warning');
+        if (!warningDiv) {
+            warningDiv = document.createElement('div');
+            warningDiv.id = 'date-warning';
+            warningDiv.className = 'mt-3 p-4 bg-red-50 border border-red-200 rounded-lg';
+            appointmentDateInput.parentNode.appendChild(warningDiv);
+        }
+        warningDiv.innerHTML = `
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-3 mt-1"></i>
+                <div>
+                    <p class="text-red-700 font-medium">Invalid Date Selection</p>
+                    <p class="text-red-600 text-sm mt-1">${message}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Function to hide date warning
+    function hideDateWarning() {
+        const warningDiv = document.getElementById('date-warning');
+        if (warningDiv) {
+            warningDiv.remove();
+        }
+    }
 });
 </script> 

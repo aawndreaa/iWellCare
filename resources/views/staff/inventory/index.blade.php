@@ -3,20 +3,10 @@
 @section('page-title', 'Inventory')
 @section('page-subtitle', 'Monitor and update supply levels')
 @section('content')
-<div class="inventory-content min-h-screen bg-white">
-    <!-- Compact Header -->
-    <div class="relative overflow-hidden rounded-xl mx-4 mt-4 mb-6" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.12), 0 4px 6px -2px rgba(37, 99, 235, 0.06);">
-        <div class="relative px-6 py-8 text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-full mb-3 backdrop-blur-sm">
-                <i class="fas fa-boxes text-xl text-white"></i>
-            </div>
-            <h1 class="text-2xl font-bold text-white mb-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Inventory Management</h1>
-            <p class="text-green-100 text-sm max-w-lg mx-auto">Monitor and manage your medical supplies</p>
-        </div>
-    </div>
+<div class="inventory-content">
 
     <!-- Stats Cards Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 px-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="group relative overflow-hidden rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-300 cursor-pointer" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%); box-shadow: 0 8px 12px -3px rgba(37, 99, 235, 0.12), 0 4px 6px -2px rgba(37, 99, 235, 0.06);">
             <div class="absolute inset-0 bg-gradient-to-br from-green-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div class="relative">
@@ -53,16 +43,16 @@
             </div>
         </div>
     </div>
-<div class="bg-white rounded-xl p-4 mb-4 border border-blue-200 shadow-lg" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 30%, #eef2f7 100%); border-color: #bfdbfe;">
+<div class="bg-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <form method="GET" action="" class="flex flex-wrap gap-3 items-end flex-1">
+        <div class="flex flex-wrap gap-3 items-end flex-1">
             <div class="min-w-0 flex-1 lg:flex-initial">
                 <label class="block text-gray-700 text-sm font-medium mb-1">Item Name</label>
-                <input type="text" name="name" class="form-input w-full" value="{{ request('name') }}" placeholder="Search items...">
+                <input type="text" id="name-filter" name="name" class="form-input w-full" value="{{ request('name') }}" placeholder="Search items...">
             </div>
             <div class="min-w-0">
                 <label class="block text-gray-700 text-sm font-medium mb-1">Category</label>
-                <select name="category" class="form-input w-full">
+                <select id="category-filter" name="category" class="form-input w-full">
                     <option value="">All Categories</option>
                     <option value="medicine" {{ request('category') === 'medicine' ? 'selected' : '' }}>Medicine</option>
                     <option value="supplies" {{ request('category') === 'supplies' ? 'selected' : '' }}>Supplies</option>
@@ -70,47 +60,46 @@
                 </select>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="btn btn-primary" style="background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);">Search</button>
                 <a href="{{ route('staff.inventory.index') }}" class="btn btn-secondary">Reset</a>
             </div>
-        </form>
-        <a href="{{ route('staff.inventory.create') }}" class="btn btn-success flex items-center gap-2 px-4 py-2 whitespace-nowrap" style="background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);">
+        </div>
+        <a href="{{ route('staff.inventory.create') }}" class="btn btn-success flex items-center gap-2 px-4 py-2 whitespace-nowrap bg-blue-600 hover:bg-blue-700">
             <i class="fas fa-plus"></i> Add Item
         </a>
     </div>
 </div>
 @if(session('success'))
-    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 text-green-800 p-4 rounded-xl mb-4 flex items-center gap-3 shadow-lg" style="border-color: #86efac;">
+    <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg mb-6 flex items-center gap-3">
         <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
             <i class="fas fa-check-circle text-green-600"></i>
         </div>
-        <span class="font-semibold">{{ session('success') }}</span>
+        <span class="font-medium">{{ session('success') }}</span>
     </div>
 @endif
-<div class="bg-white rounded-xl border border-blue-200 shadow-xl overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 30%, #eef2f7 100%); border-color: #bfdbfe;">
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
-            <thead style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%); border-bottom: 2px solid #93c5fd;">
+            <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <th class="py-2 px-3 text-left font-semibold text-sm text-white">Item</th>
-                    <th class="py-2 px-3 text-left font-semibold text-sm text-white">Quantity</th>
-                    <th class="py-2 px-3 text-left font-semibold text-sm text-white">Status</th>
-                    <th class="py-2 px-3 text-left font-semibold text-sm text-white">Actions</th>
+                    <th class="py-3 px-4 text-left font-semibold text-sm text-gray-900">Item</th>
+                    <th class="py-3 px-4 text-left font-semibold text-sm text-gray-900">Quantity</th>
+                    <th class="py-3 px-4 text-left font-semibold text-sm text-gray-900">Status</th>
+                    <th class="py-3 px-4 text-left font-semibold text-sm text-gray-900">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($inventory as $item)
                     <tr class="hover:bg-blue-50/50 transition-colors border-b border-gray-100 last:border-b-0">
-                        <td class="py-2 px-3 flex items-center gap-3">
+                        <td class="py-3 px-4 flex items-center gap-3">
                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm" style="background-color: #dbeafe; color: #1d4ed8;">
                                 {{ strtoupper(substr($item->name, 0, 1)) }}
                             </span>
                             <span class="font-medium text-gray-900">{{ $item->name }}</span>
                         </td>
-                        <td class="py-2 px-3">
+                        <td class="py-3 px-4">
                             <span class="font-semibold text-gray-900">{{ $item->quantity }}</span>
                         </td>
-                        <td class="py-2 px-3">
+                        <td class="py-3 px-4">
                             @php
                                 $badge = $item->isOutOfStock() ? 'bg-red-100 text-red-700 border-red-200' : ($item->isLowStock() ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-green-100 text-green-700 border-green-200');
                                 $label = $item->isOutOfStock() ? 'Out of Stock' : ($item->isLowStock() ? 'Low Stock' : 'In Stock');
@@ -119,15 +108,15 @@
                                 <i class="fas fa-circle mr-1 text-[6px]"></i> {{ $label }}
                             </span>
                         </td>
-                        <td class="py-2 px-3">
-                            <a href="{{ route('staff.inventory.edit', $item->id) }}" class="inline-flex items-center gap-1 px-2 py-1 text-white text-xs font-medium rounded-md transition-colors" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                        <td class="py-3 px-4">
+                            <a href="{{ route('staff.inventory.edit', $item->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-white text-xs font-medium rounded-md transition-colors bg-blue-600 hover:bg-blue-700">
                                 <i class="fas fa-edit"></i> Update
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="py-8 text-center">
+                        <td colspan="4" class="py-12 text-center">
                             <div class="flex flex-col items-center gap-3">
                                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                                     <i class="fas fa-boxes text-3xl text-green-500"></i>
@@ -142,10 +131,9 @@
         </table>
     </div>
 </div>
-<div class="mt-3 flex justify-center">
+<div class="mt-6 flex justify-center">
     {{ $inventory->links() }}
 </div>
-
 
 @push('styles')
 <style>
@@ -360,8 +348,35 @@ input:focus, select:focus, textarea:focus {
 
 @push('scripts')
 <script>
-// Any additional JavaScript for the inventory page can go here
+document.addEventListener('DOMContentLoaded', function() {
+    const nameFilter = document.getElementById('name-filter');
+    const categoryFilter = document.getElementById('category-filter');
+    let searchTimeout;
+
+    function performSearch() {
+        const name = nameFilter.value;
+        const category = categoryFilter.value;
+
+        // Build query string
+        const params = new URLSearchParams();
+        if (name) params.append('name', name);
+        if (category) params.append('category', category);
+
+        // Update URL without page reload
+        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.location.href = newUrl;
+    }
+
+    // Add event listeners for automatic search
+    nameFilter.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 500); // Debounce for 500ms
+    });
+
+    categoryFilter.addEventListener('change', function() {
+        performSearch(); // Immediate search for category changes
+    });
+});
 </script>
-    @endpush
-</div>
-@endsection 
+@endpush
+@endsection

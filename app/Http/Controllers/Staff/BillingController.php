@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
-use App\Models\Billing;
+use App\Models\Invoice;
 use App\Models\Patient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -13,11 +13,11 @@ class BillingController extends Controller
 {
     public function index()
     {
-        $billings = Billing::with(['patient', 'appointment'])
-            ->active()
+        $invoices = Invoice::with(['patient', 'appointment'])
+            ->where('is_archived', false)
             ->paginate(10);
 
-        return view('staff.invoice.index', compact('billings'));
+        return view('staff.invoice.index', compact('invoices'));
     }
 
     public function create()
@@ -37,19 +37,36 @@ class BillingController extends Controller
             'medication_fee' => 'nullable|numeric|min:0',
             'laboratory_fee' => 'nullable|numeric|min:0',
             'other_fees' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'less_sc' => 'nullable|numeric|min:0',
             'status' => 'required|in:paid,unpaid',
             'payment_date' => 'required|date',
         ]);
 
-        // Calculate total amount
-        $total_amount = $request->consultation_fee +
-                       ($request->medication_fee ?? 0) +
-                       ($request->laboratory_fee ?? 0) +
-                       ($request->other_fees ?? 0);
+        // Calculate total sales
+        $total_sales = $request->consultation_fee +
+                      ($request->medication_fee ?? 0) +
+                      ($request->laboratory_fee ?? 0) +
+                      ($request->other_fees ?? 0);
+
+        // Calculate discount amount from percentage
+        $discount_percentage = $request->discount_percentage ?? 0;
+        $discount = $total_sales * ($discount_percentage / 100);
+        
+        // Use manually entered discount amount if provided (for backward compatibility)
+        if ($request->has('less_sc') && $request->less_sc > 0) {
+            $discount = $request->less_sc;
+        }
+
+        // Calculate net of discount
+        $net_of_sc = $total_sales - $discount;
+
+        // Calculate total amount (grand total)
+        $total_amount = $net_of_sc;
 
         // Generate invoice number (yearly sequence: INV-YYYY-XXXX)
         $year = now()->format('Y');
-        $lastInvoice = \App\Models\Invoice::where('invoice_no', 'like', "INV-{$year}-%")
+        $lastInvoice = Invoice::where('invoice_no', 'like', "INV-{$year}-%")
             ->orderBy('invoice_no', 'desc')
             ->first();
         if ($lastInvoice && isset($lastInvoice->invoice_no)) {
@@ -60,7 +77,7 @@ class BillingController extends Controller
         }
         $invoiceNo = "INV-{$year}-{$nextNumber}";
 
-        Billing::create([
+        Invoice::create([
             'patient_id' => $request->patient_id,
             'appointment_id' => $request->appointment_id,
             'invoice_no' => $invoiceNo,
@@ -73,16 +90,17 @@ class BillingController extends Controller
             'medication_fee' => $request->medication_fee ?? 0,
             'laboratory_fee' => $request->laboratory_fee ?? 0,
             'other_fees' => $request->other_fees ?? 0,
-            // sales summary defaults
-            'total_sales' => $total_amount,
-            'less_sc' => 0,
-            'net_of_sc' => $total_amount,
+            // sales summary
+            'total_sales' => $total_sales,
+            'less_sc' => $discount,
+            'net_of_sc' => $net_of_sc,
             'withholding' => 0,
             'total_amount' => $total_amount,
             'amount' => $total_amount, // Keep for backward compatibility
             'grand_total' => $total_amount,
             'status' => $request->status,
             'payment_date' => $request->payment_date,
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('staff.billing.index')->with('success', 'Invoice created successfully.');
@@ -90,13 +108,13 @@ class BillingController extends Controller
 
     public function generatePdf(Request $request, $id)
     {
-        $billing = Billing::with(['patient', 'appointment'])->findOrFail($id);
+        $invoice = Invoice::with(['patient', 'appointment'])->findOrFail($id);
 
         // Generate invoice number (you can customize this logic)
-        $invoiceNumber = 'INV-'.str_pad($billing->id, 6, '0', STR_PAD_LEFT);
+        $invoiceNumber = 'INV-'.str_pad($invoice->id, 6, '0', STR_PAD_LEFT);
 
         $pdf = Pdf::loadView('staff.invoice.invoice-pdf', [
-            'billing' => $billing,
+            'billing' => $invoice,
             'invoiceNumber' => $invoiceNumber,
             'date' => now()->format('M d, Y'),
         ]);
@@ -118,8 +136,8 @@ class BillingController extends Controller
 
     public function markAsPaid($id)
     {
-        $billing = Billing::findOrFail($id);
-        $billing->update([
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update([
             'status' => 'paid',
             'payment_date' => now(),
         ]);
@@ -129,8 +147,8 @@ class BillingController extends Controller
 
     public function destroy($id)
     {
-        $billing = Billing::findOrFail($id);
-        $billing->update(['is_archived' => true]);
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update(['is_archived' => true]);
 
         return redirect()->route('staff.billing.index')->with('success', 'Invoice archived successfully.');
     }

@@ -65,10 +65,6 @@
                 <h4 class="text-lg font-semibold text-gray-800 mb-4">Consultation Summary</h4>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="text-gray-600 font-medium">Consultation Date</span>
-                        <span class="text-gray-800">{{ $consultation->consultation_date->format('M d, Y') }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
                         <span class="text-gray-600 font-medium">Doctor</span>
                         <span class="text-gray-800">{{ $consultation->doctor->first_name ?? 'N/A' }} {{ $consultation->doctor->last_name ?? '' }}</span>
                     </div>

@@ -24,12 +24,12 @@
 
     .login-card {
         background: white;
-        border-radius: 16px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         padding: 2rem;
         width: 100%;
         max-width: 400px;
-        position: relative;
+        margin: 0 auto;
     }
 
     .login-header {
@@ -63,11 +63,10 @@
 
     .form-input {
         width: 100%;
-        padding: 0.75rem 1rem;
+        padding: 0.75rem;
         border: 1px solid #d1d5db;
-        border-radius: 8px;
+        border-radius: 4px;
         font-size: 0.875rem;
-        transition: all 0.2s ease;
         background: white;
         box-sizing: border-box;
     }
@@ -109,21 +108,17 @@
         color: white;
         border: none;
         padding: 0.875rem 1rem;
-        border-radius: 8px;
+        border-radius: 4px;
         font-size: 0.875rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
+        transition: background-color 0.2s ease;
+        min-height: 44px;
+        box-sizing: border-box;
     }
 
     .btn-login:hover {
         background: #2563eb;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
 
     .error-text {
@@ -159,19 +154,30 @@
         color: #1d4ed8;
     }
 
-    @media (max-width: 640px) {
+    /* Mobile responsive design */
+    @media (max-width: 768px) {
+        .login-wrapper {
+            padding: 1rem;
+        }
+
         .login-card {
             padding: 1.5rem;
-            margin: 0.5rem;
+            margin: 0;
+            border-radius: 8px;
         }
 
         .login-title {
             font-size: 1.5rem;
         }
+
+        .form-input {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
     }
+
 </style>
 
-<div class="login-wrapper">
+<div class="login-wrapper" style="width: 100vw; max-width: 100vw; overflow-x: hidden;">
     <div class="login-card">
         <div class="login-header">
             <h1 class="login-title">Sign In</h1>
@@ -261,7 +267,7 @@ unset($__errorArgs, $__bag); ?>
                 <a href="<?php echo e(route('register')); ?>">Sign up here</a>
             </p>
             <p class="link-text">
-                <a href="#">Forgot your password?</a>
+                <a href="<?php echo e(route('password.request')); ?>">Forgot your password?</a>
             </p>
         </div>
     </div>

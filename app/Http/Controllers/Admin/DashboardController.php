@@ -62,39 +62,6 @@ class DashboardController extends Controller
                 $query->where('role', 'staff');
             })->where('created_at', '>=', $thisMonth)->count();
 
-            // Recent Staff Activities
-            $recentStaffAppointments = Appointment::with(['patient', 'createdBy'])
-                ->whereHas('createdBy', function ($query) {
-                    $query->where('role', 'staff');
-                })
-                ->latest()
-                ->take(10)
-                ->get();
-
-            $recentStaffConsultations = Consultation::with(['patient', 'createdBy'])
-                ->whereHas('createdBy', function ($query) {
-                    $query->where('role', 'staff');
-                })
-                ->latest()
-                ->take(10)
-                ->get();
-
-            // Top Performing Staff
-            $topStaffByAppointments = User::where('role', 'staff')
-                ->withCount(['createdAppointments' => function ($query) use ($thisMonth) {
-                    $query->where('created_at', '>=', $thisMonth);
-                }])
-                ->orderBy('created_appointments_count', 'desc')
-                ->take(5)
-                ->get();
-
-            $topStaffByConsultations = User::where('role', 'staff')
-                ->withCount(['createdConsultations' => function ($query) use ($thisMonth) {
-                    $query->where('created_at', '>=', $thisMonth);
-                }])
-                ->orderBy('created_consultations_count', 'desc')
-                ->take(5)
-                ->get();
 
             // Staff Growth Rate
             $staffGrowthRate = $this->calculateGrowthRate(
@@ -112,8 +79,6 @@ class DashboardController extends Controller
             $staffCreatedConsultations = $staffConsultationsThisMonth = $staffConsultationsThisWeek = 0;
             $staffCreatedPrescriptions = $staffPrescriptionsThisMonth = 0;
             $staffHandledBills = $staffBillsThisMonth = 0;
-            $recentStaffAppointments = $recentStaffConsultations = collect();
-            $topStaffByAppointments = $topStaffByConsultations = collect();
             $staffGrowthRate = 0;
             $systemHealth = ['status' => 'error', 'message' => 'Database connection issue'];
         }
@@ -127,12 +92,6 @@ class DashboardController extends Controller
             'staffCreatedConsultations', 'staffConsultationsThisMonth', 'staffConsultationsThisWeek',
             'staffCreatedPrescriptions', 'staffPrescriptionsThisMonth',
             'staffHandledBills', 'staffBillsThisMonth',
-
-            // Recent Activities
-            'recentStaffAppointments', 'recentStaffConsultations',
-
-            // Top Performers
-            'topStaffByAppointments', 'topStaffByConsultations',
 
             // Growth
             'staffGrowthRate', 'systemHealth'

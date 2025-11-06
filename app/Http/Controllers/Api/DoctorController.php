@@ -13,8 +13,18 @@ class DoctorController extends Controller
     public function index()
     {
         $doctors = User::where('role', 'doctor')
-            ->select('id', 'first_name', 'last_name', 'email', 'specialization')
-            ->get();
+            ->with('doctor')
+            ->select('id', 'first_name', 'last_name', 'email')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'specialization' => $user->doctor ? $user->doctor->specialization : null,
+                ];
+            });
 
         return response()->json($doctors);
     }
@@ -24,16 +34,38 @@ class DoctorController extends Controller
      */
     public function available()
     {
-        $totalDoctors = User::where('role', 'doctor')->count();
-        $availableDoctors = User::where('role', 'doctor')
-            ->where('is_available', true)
-            ->select('id', 'first_name', 'last_name', 'email', 'specialization')
-            ->get();
+        $totalDoctors = User::whereIn('role', ['doctor', 'admin'])->count();
 
+        // Get doctors with their availability status
+        $doctors = User::whereIn('role', ['doctor', 'admin'])
+            ->with(['doctor', 'availabilitySettings' => function($query) {
+                $query->latest()->limit(1);
+            }])
+            ->select('id', 'first_name', 'last_name', 'email')
+            ->get()
+            ->map(function ($user) {
+                $latestSetting = $user->availabilitySettings->first();
+                $availabilityStatus = $latestSetting ? $latestSetting->getCurrentStatus() : ['is_available' => true, 'status' => 'available', 'message' => 'Available'];
+
+                return [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'specialization' => $user->doctor ? $user->doctor->specialization : null,
+                    'is_available' => $availabilityStatus['is_available'],
+                    'status' => $availabilityStatus['status'],
+                    'message' => $availabilityStatus['message'],
+                ];
+            });
+
+        $availableDoctors = $doctors->where('is_available', true);
+
+        // Return all doctors with their availability status, not just available ones
         return response()->json([
             'total' => $totalDoctors,
             'available' => $availableDoctors->count(),
-            'doctors' => $availableDoctors,
+            'doctors' => $doctors->values(),
         ]);
     }
 
@@ -44,13 +76,23 @@ class DoctorController extends Controller
     {
         $doctor = User::where('role', 'doctor')
             ->where('id', $id)
-            ->select('id', 'first_name', 'last_name', 'email', 'specialization', 'phone')
+            ->with('doctor')
+            ->select('id', 'first_name', 'last_name', 'email', 'phone_number')
             ->first();
 
         if (! $doctor) {
             return response()->json(['message' => 'Doctor not found'], 404);
         }
 
-        return response()->json($doctor);
+        $response = [
+            'id' => $doctor->id,
+            'first_name' => $doctor->first_name,
+            'last_name' => $doctor->last_name,
+            'email' => $doctor->email,
+            'phone' => $doctor->phone_number,
+            'specialization' => $doctor->doctor ? $doctor->doctor->specialization : null,
+        ];
+
+        return response()->json($response);
     }
 }

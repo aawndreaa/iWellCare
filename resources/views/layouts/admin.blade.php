@@ -173,7 +173,7 @@
                 </a>
                 <a href="{{ route('admin.staff.index') }}" class="nav-item {{ request()->routeIs('admin.staff.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
                     <i class="fas fa-user-cog text-lg"></i>
-                    <span class="font-medium">Team</span>
+                    <span class="font-medium">Staff</span>
                 </a>
                 <a href="{{ route('admin.patients.index') }}" class="nav-item {{ request()->routeIs('admin.patients.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
                     <i class="fas fa-users text-lg"></i>
@@ -185,7 +185,7 @@
                         <span class="font-medium">Appointments</span>
                     </div>
                     @php
-                        $todayAppointmentCount = \App\Models\Appointment::whereDate('appointment_date', today())->count();
+                        $todayAppointmentCount = \App\Models\Appointment::where('status', 'confirmed')->whereDate('appointment_date', today())->count();
                     @endphp
                     @if($todayAppointmentCount > 0)
                         <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ $todayAppointmentCount }}</span>
@@ -194,6 +194,10 @@
                 <a href="{{ route('admin.consultations.index') }}" class="nav-item {{ request()->routeIs('admin.consultations.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
                     <i class="fas fa-stethoscope text-lg"></i>
                     <span class="font-medium">Consultations</span>
+                </a>
+                <a href="{{ route('admin.prescriptions.index') }}" class="nav-item {{ request()->routeIs('admin.prescriptions.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
+                    <i class="fas fa-prescription text-lg"></i>
+                    <span class="font-medium">Prescriptions</span>
                 </a>
                 <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
                     <i class="fas fa-pills text-lg"></i>

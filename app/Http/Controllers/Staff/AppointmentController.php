@@ -30,6 +30,11 @@ class AppointmentController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->filled('archived')) {
+            $query->where('is_archived', $request->boolean('archived'));
+        } else {
+            $query->where('is_archived', false);
+        }
         $appointments = $query->orderBy('appointment_date', 'desc')
             ->orderBy('appointment_time', 'desc')
             ->paginate(10)
@@ -264,5 +269,21 @@ class AppointmentController extends Controller
         // $this->notificationService->sendAppointmentStatusUpdateNotification($appointment, $oldStatus, 'rescheduled');
 
         return redirect()->route('staff.appointments.index')->with('success', 'Appointment rescheduled and set to scheduled.');
+    }
+
+    public function archive($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update(['is_archived' => true]);
+
+        return redirect()->route('staff.appointments.index')->with('success', 'Appointment archived successfully.');
+    }
+
+    public function unarchive($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update(['is_archived' => false]);
+
+        return redirect()->route('staff.appointments.index')->with('success', 'Appointment unarchived successfully.');
     }
 }

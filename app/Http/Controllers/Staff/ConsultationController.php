@@ -25,10 +25,18 @@ class ConsultationController extends Controller
      */
     public function create(Request $request)
     {
-        $patients = Patient::with('user')->get();
+        // Get patients with confirmed appointments for today
+        $today = now()->toDateString();
+        $patients = Patient::with('user')
+            ->whereHas('appointments', function ($query) use ($today) {
+                $query->where('status', 'confirmed')
+                      ->where('appointment_date', $today);
+            })
+            ->get();
+
         $doctors = Doctor::with('user')->where('status', 'active')->get();
         $appointments = \App\Models\Appointment::with(['patient.user', 'doctor.user'])
-            ->where('status', 'scheduled')
+            ->where('status', 'confirmed')
             ->where('appointment_date', '>=', now()->toDateString())
             ->orderBy('appointment_date')
             ->orderBy('appointment_time')
@@ -53,7 +61,6 @@ class ConsultationController extends Controller
             'appointment_id' => 'nullable|exists:appointments,id',
             'patient_id' => $isDraft ? 'nullable|exists:patients,id' : 'required|exists:patients,id',
             'doctor_id' => $isDraft ? 'nullable|exists:users,id' : 'required|exists:users,id',
-            'consultation_date' => $isDraft ? 'nullable|date' : 'required|date',
             'chief_complaint' => $isDraft ? 'nullable|string' : 'required|string',
             'present_illness' => 'nullable|string',
             'past_medical_history' => 'nullable|string',
@@ -101,7 +108,7 @@ class ConsultationController extends Controller
             'appointment_id' => $request->appointment_id,
             'patient_id' => $request->patient_id,
             'doctor_id' => $request->doctor_id,
-            'consultation_date' => $request->consultation_date,
+            'consultation_date' => now()->toDateString(),
             'consultation_time' => now(),
             'chief_complaint' => $request->chief_complaint,
             'present_illness' => $request->present_illness,

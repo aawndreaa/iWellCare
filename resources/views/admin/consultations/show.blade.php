@@ -1,22 +1,19 @@
 @extends('layouts.admin')
 
-@section('title', 'Patient Details - iWellCare')
-@section('page-title', 'Patient Details')
-@section('page-subtitle', 'View complete patient information')
+@section('title', 'Consultation Details - iWellCare')
+@section('page-title', 'Consultation Details')
+@section('page-subtitle', 'View consultation information')
 
 @section('content')
-<div class="patients-content">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Patient Information</h2>
-            <p class="text-gray-600">Complete patient details and medical history</p>
-        </div>
+        <div></div>
         <div class="flex gap-3">
-            <a href="{{ route('admin.patients.edit', $patient) }}" class="btn btn-secondary">
-                <i class="fas fa-edit mr-2"></i>Edit Patient
+            <a href="{{ route('admin.consultations.edit', $consultation) }}" class="btn btn-secondary">
+                <i class="fas fa-edit mr-2"></i>Edit Consultation
             </a>
-            <a href="{{ route('admin.consultations.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary">
-                <i class="fas fa-plus mr-2"></i>New Consultation
+            <a href="{{ route('admin.consultations.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Consultations
             </a>
         </div>
     </div>
@@ -152,8 +149,8 @@
             <div class="card p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="text-lg font-semibold text-gray-800">Recent Appointments</h4>
-                    <a href="{{ route('admin.appointments.create', ['patient_id' => $patient->id]) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        Schedule New
+                    <a href="{{ route('admin.appointments.index') }}?patient_id={{ $patient->id }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        View All
                     </a>
                 </div>
                 

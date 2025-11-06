@@ -133,7 +133,7 @@
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stats-cell">
-                    <h3>₱{{ number_format($salesData['total_revenue'], 2) }}</h3>
+                    <h3>₱{{ number_format($salesData['total_revenue'], 0) }}</h3>
                     <p>Total Revenue</p>
                 </div>
                 <div class="stats-cell">
@@ -170,8 +170,8 @@
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($daily['date'])->format('M d, Y (D)') }}</td>
                         <td class="text-center">{{ $daily['revenue'] / 500 }}</td>
-                        <td class="text-right"><strong>₱{{ number_format($daily['revenue'], 2) }}</strong></td>
-                        <td class="text-right">₱500.00</td>
+                        <td class="text-right"><strong>₱{{ number_format($daily['revenue'], 0) }}</strong></td>
+                        <td class="text-right">₱500</td>
                     </tr>
                     @endforeach
                 </tbody>

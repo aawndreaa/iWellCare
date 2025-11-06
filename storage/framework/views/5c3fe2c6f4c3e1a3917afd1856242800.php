@@ -17,30 +17,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #f8fafc;
             margin: 0 !important;
             padding: 0 !important;
             overflow-x: hidden !important;
         }
-        
-        /* Fixed sidebar like staff layout */
-        .sidebar { 
-            width: 280px; 
-            position: fixed; 
-            left: 0; 
-            top: 0; 
-            height: 100vh; 
+
+        /* Desktop sidebar */
+        .sidebar {
+            width: 280px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
             background: linear-gradient(180deg, #1e40af 0%, #3b82f6 100%);
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             z-index: 50;
             overflow-y: auto;
         }
-        
-        /* Hide mobile overlay and button to mirror staff design */
-        .sidebar-overlay { display: none !important; }
-        .mobile-menu-btn { display: none !important; }
+
+        /* Mobile sidebar - hidden by default */
+        @media (max-width: 1023px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 60;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
         
         .sidebar::-webkit-scrollbar {
             width: 6px;
@@ -65,32 +74,18 @@
         }
         
         .nav-item {
-            border-radius: 16px;
-            margin: 8px 16px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            padding: 0.75rem 1rem;
+            margin: 4px 16px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
         }
-        
+
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.1);
         }
-        
+
         .nav-item.active {
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
-        }
-        
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: linear-gradient(180deg, #fbbf24, #f59e0b);
-            border-radius: 0 2px 2px 0;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .card {
@@ -100,19 +95,31 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            background: #3b82f6;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(30, 64, 175, 0.3);
+            transition: background-color 0.2s ease;
         }
-        
+
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(30, 64, 175, 0.4);
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
         }
         
         
@@ -123,18 +130,13 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Enhanced Navigation Icons */
+        /* Simple Navigation Icons */
         .nav-icon {
             width: 20px;
             height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-item:hover .nav-icon {
-            transform: scale(1.1);
         }
         
         /* Header simplified to staff style */
@@ -142,31 +144,95 @@
         .page-title { font-size: 1.875rem; font-weight: 700; color: #111827; }
         .page-subtitle { color: #64748b; font-weight: 500; }
         
-        /* Mobile navigation improvements */
+        /* Standard mobile navigation */
         @media (max-width: 1023px) {
-            .nav-item {
-                margin: 4px 12px;
-                padding: 0.75rem 1rem;
+            .main-content {
+                margin-left: 0;
             }
-            
-            .nav-item span {
-                font-size: 0.95rem;
+
+            /* Top navigation bar for mobile */
+            .mobile-nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: white;
+                border-bottom: 1px solid #e5e7eb;
+                z-index: 55;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 1rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
-            
-            .sidebar-logo img {
-                width: 80px;
-                height: 80px;
+
+            .mobile-nav .logo {
+                height: 40px;
+                width: auto;
             }
-            
-            .sidebar-logo {
-                padding: 1rem;
+
+            .hamburger-btn {
+                background: none;
+                border: none;
+                padding: 0.5rem;
+                border-radius: 0.375rem;
+                color: #374151;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .hamburger-btn:hover {
+                background: #f3f4f6;
+            }
+
+            /* Adjust main content for mobile nav */
+            .main-content {
+                padding-top: 60px;
+            }
+
+            /* Sidebar overlay for mobile */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                height: calc(100vh - 60px);
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 55;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            /* Sidebar adjustments for mobile */
+            .sidebar {
+                top: 60px;
+                height: calc(100vh - 60px);
+                z-index: 65;
             }
         }
     </style>
 </head>
 <body>
 
-    
+    <!-- Mobile Navigation Bar -->
+    <nav class="mobile-nav md:hidden">
+        <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Open menu">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+        <div class="flex-1 text-center">
+            <img src="<?php echo e(asset('assets/img/iWellCare-logo.png')); ?>" alt="iWellCare" class="logo h-8 mx-auto">
+        </div>
+        <div class="w-10"></div> <!-- Spacer for centering -->
+    </nav>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
 
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
@@ -261,19 +327,24 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Header (staff-like) -->
-        <div class="bg-white border-b border-gray-200 px-8 py-6">
+        <!-- Header (enhanced design) -->
+        <div class="bg-white border-b border-gray-200 px-4 lg:px-8 py-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900"><?php echo $__env->yieldContent('page-title', 'Dashboard'); ?></h1>
-                    <p class="text-gray-600 mt-1"><?php echo $__env->yieldContent('page-subtitle', 'Welcome to your patient portal'); ?></p>
+                <div class="flex-1">
+                    <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-1"><?php echo $__env->yieldContent('page-title', 'Dashboard'); ?></h1>
+                    <?php if(View::hasSection('page-subtitle')): ?>
+                        <p class="text-gray-600 text-sm lg:text-base"><?php echo $__env->yieldContent('page-subtitle'); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="bg-blue-50 px-4 py-2 rounded-lg">
-                        <span class="text-blue-600 font-medium"><?php echo e(now()->format('l, F j, Y')); ?></span>
+                    <!-- Current Date/Time -->
+                    <div class="hidden md:block text-right">
+                        <p class="text-sm text-gray-500"><?php echo e(now()->format('l, F j, Y')); ?></p>
+                        <p class="text-xs text-gray-400"><?php echo e(now()->format('g:i A')); ?></p>
                     </div>
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user text-blue-600"></i>
+                    <!-- User Avatar -->
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                        <i class="fas fa-user text-white text-sm"></i>
                     </div>
                 </div>
             </div>
@@ -286,35 +357,58 @@
     </div>
 
     <script>
-        // Page Load Initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialization code here
-        });
+        // Standard mobile navigation functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
 
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+            if (window.innerWidth <= 1023) {
+                const isOpen = sidebar.classList.contains('open');
+                if (isOpen) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
                 }
-            });
-        });
+            }
+        }
 
-        // Hover effects for cards
-        document.querySelectorAll('.card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-4px)';
-                this.style.boxShadow = '0 12px 20px rgba(0, 0, 0, 0.08)';
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (window.innerWidth <= 1023) {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (window.innerWidth <= 1023) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar when clicking navigation links on mobile
+            const navLinks = document.querySelectorAll('.sidebar a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 1023) {
+                        closeSidebar();
+                    }
+                });
             });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.06)';
+
+            // Close sidebar on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && window.innerWidth <= 1023) {
+                    closeSidebar();
+                }
             });
         });
     </script>

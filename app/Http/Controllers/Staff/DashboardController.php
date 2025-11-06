@@ -39,6 +39,17 @@ class DashboardController extends Controller
             $recentAppointments = collect();
         }
 
+        // Get recent patients
+        $recentPatients = collect();
+        try {
+            $recentPatients = \App\Models\Patient::with('user')
+                ->latest()
+                ->take(5)
+                ->get();
+        } catch (\Throwable $e) {
+            $recentPatients = collect();
+        }
+
         try {
             $lowInventory = Inventory::whereColumn('quantity', '<=', 'reorder_level')->count();
         } catch (\Throwable $e) {
@@ -111,7 +122,8 @@ class DashboardController extends Controller
             'lowInventory',
             'unpaidBills',
             'recentActivity',
-            'recentAppointments'
+            'recentAppointments',
+            'recentPatients'
         ));
     }
 }

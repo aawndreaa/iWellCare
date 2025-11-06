@@ -24,6 +24,7 @@ class Appointment extends Model
         'room_number',
         'created_by',
         'updated_by',
+        'is_archived',
     ];
 
     protected $casts = [
@@ -58,19 +59,19 @@ class Appointment extends Model
     }
 
     /**
-     * Get the billing record for this appointment.
+     * Get the invoice record for this appointment.
      */
-    public function billing()
+    public function invoice()
     {
-        return $this->hasOne(Billing::class);
+        return $this->hasOne(Invoice::class);
     }
 
     /**
-     * Get the billing records for this appointment.
+     * Get the invoice records for this appointment.
      */
-    public function billings()
+    public function invoices()
     {
-        return $this->hasMany(Billing::class);
+        return $this->hasMany(Invoice::class);
     }
 
     /**

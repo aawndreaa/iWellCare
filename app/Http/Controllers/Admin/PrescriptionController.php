@@ -1,0 +1,209 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Doctor;
+use App\Models\Patient;
+use App\Models\Prescription;
+use App\Models\PrescriptionMedication;
+use Illuminate\Http\Request;
+
+class PrescriptionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $query = Prescription::with(['patient', 'doctor.user', 'medications']);
+
+        // Search by patient name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('patient', function($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                  ->orWhere('last_name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date from
+        if ($request->filled('date_from')) {
+            $query->whereDate('prescription_date', '>=', $request->date_from);
+        }
+
+        $prescriptions = $query->orderBy('prescription_date', 'desc')->paginate(10);
+
+        return view('admin.prescriptions.index', compact('prescriptions'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $patients = Patient::with('user')->where('is_active', true)->get();
+        $doctors = Doctor::with('user')->where('status', 'active')->get();
+
+        return view('admin.prescriptions.create', compact('patients', 'doctors'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'medications' => 'required|array|min:1',
+            'medications.*.medication_name' => 'required|string|max:255',
+            'medications.*.dosage' => 'required|string|max:255',
+            'medications.*.frequency' => 'required|string|max:255',
+            'medications.*.duration' => 'nullable|string|max:255',
+            'medications.*.quantity' => 'nullable|integer',
+            'medications.*.instructions' => 'nullable|string',
+            'prescribed_date' => 'required|date',
+            'status' => 'required|in:active,completed,cancelled',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Get patient user_id for prescription
+        $patient = Patient::findOrFail($request->patient_id);
+        $patientUserId = $patient->user_id ?? $patient->id;
+
+        // Generate prescription number
+        $prescriptionNumber = 'PRES-'.date('Y').'-'.str_pad(Prescription::count() + 1, 6, '0', STR_PAD_LEFT);
+
+        // Create the prescription
+        $prescription = Prescription::create([
+            'patient_id' => $patientUserId,
+            'doctor_id' => $request->doctor_id,
+            'prescription_date' => $request->prescribed_date,
+            'status' => $request->status,
+            'notes' => $request->notes,
+            'prescription_number' => $prescriptionNumber,
+        ]);
+
+        // Create the medications
+        foreach ($request->medications as $medicationData) {
+            PrescriptionMedication::create([
+                'prescription_id' => $prescription->id,
+                'medication_name' => $medicationData['medication_name'],
+                'dosage' => $medicationData['dosage'],
+                'frequency' => $medicationData['frequency'],
+                'duration' => $medicationData['duration'] ?? null,
+                'quantity' => $medicationData['quantity'] ?? null,
+                'instructions' => $medicationData['instructions'] ?? null,
+            ]);
+        }
+
+        return redirect()->route('admin.prescriptions.index')->with('success', 'Prescription created successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Prescription $prescription)
+    {
+        $prescription->load(['patient', 'doctor.user', 'medications']);
+
+        // Load patient record if it exists
+        if ($prescription->patient) {
+            $prescription->patient->load('patient');
+        }
+
+        return view('admin.prescriptions.show', compact('prescription'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Prescription $prescription)
+    {
+        $patients = Patient::with('user')->where('is_active', true)->get();
+        $doctors = Doctor::with('user')->where('status', 'active')->get();
+        $prescription->load(['patient', 'doctor.user', 'medications']);
+
+        // Find the Patient record that matches this prescription's patient (User)
+        $patientRecord = null;
+        if ($prescription->patient) {
+            $patientRecord = Patient::where('user_id', $prescription->patient->id)->first();
+        }
+
+        return view('admin.prescriptions.edit', compact('prescription', 'patients', 'doctors', 'patientRecord'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Prescription $prescription)
+    {
+        $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'medications' => 'required|array|min:1',
+            'medications.*.medication_name' => 'required|string|max:255',
+            'medications.*.dosage' => 'required|string|max:255',
+            'medications.*.frequency' => 'required|string|max:255',
+            'medications.*.duration' => 'nullable|string|max:255',
+            'medications.*.quantity' => 'nullable|integer',
+            'medications.*.instructions' => 'nullable|string',
+            'prescribed_date' => 'required|date',
+            'status' => 'required|in:active,completed,cancelled',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Get patient user_id for prescription
+        $patient = Patient::findOrFail($request->patient_id);
+        $patientUserId = $patient->user_id ?? $patient->id;
+
+        // Update the prescription
+        $prescription->update([
+            'patient_id' => $patientUserId,
+            'doctor_id' => $request->doctor_id,
+            'prescription_date' => $request->prescribed_date,
+            'status' => $request->status,
+            'notes' => $request->notes,
+        ]);
+
+        // Delete existing medications
+        $prescription->medications()->delete();
+
+        // Create new medications
+        foreach ($request->medications as $medicationData) {
+            PrescriptionMedication::create([
+                'prescription_id' => $prescription->id,
+                'medication_name' => $medicationData['medication_name'],
+                'dosage' => $medicationData['dosage'],
+                'frequency' => $medicationData['frequency'],
+                'duration' => $medicationData['duration'] ?? null,
+                'quantity' => $medicationData['quantity'] ?? null,
+                'instructions' => $medicationData['instructions'] ?? null,
+            ]);
+        }
+
+        return redirect()->route('admin.prescriptions.index')->with('success', 'Prescription updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Prescription $prescription)
+    {
+        // Delete associated medications first
+        $prescription->medications()->delete();
+
+        // Delete the prescription
+        $prescription->delete();
+
+        return redirect()->route('admin.prescriptions.index')->with('success', 'Prescription deleted successfully.');
+    }
+}
+

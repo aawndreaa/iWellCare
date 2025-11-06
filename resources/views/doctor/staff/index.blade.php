@@ -3,7 +3,12 @@
 @section('title', 'Staff Management')
 
 @section('content')
+@php
+use App\Models\User;
+@endphp
 @include('doctor.staff.partials.alert-modal')
+
+<script src="{{ asset('assets/js/real-time-service.js') }}"></script>
 
 <!-- Confirmation Modal -->
 <div id="confirmationModal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40" style="display: none;">
@@ -54,6 +59,26 @@ function executeConfirmedAction() {
         </a>
     </div>
 
+    <!-- Filter Tabs -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <a href="?filter=all&t={{ time() }}" class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {{ !request('filter') || request('filter') === 'all' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                    All Staff ({{ $totalStaff ?? 0 }})
+                </a>
+                <a href="?filter=active&t={{ time() }}" class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {{ request('filter') === 'active' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                    Active ({{ $activeStaff ?? 0 }})
+                </a>
+                <a href="?filter=inactive&t={{ time() }}" class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {{ request('filter') === 'inactive' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                    Inactive ({{ $inactiveStaff ?? 0 }})
+                </a>
+                <a href="?filter=archived&t={{ time() }}" class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {{ request('filter') === 'archived' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                    Archived ({{ $archivedCount ?? 0 }})
+                </a>
+            </nav>
+        </div>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -63,7 +88,7 @@ function executeConfirmedAction() {
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Total Staff</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $staff->total() }}</p>
+                    <p class="text-2xl font-bold text-gray-900" id="counter-total_staff">{{ $totalStaff ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -75,7 +100,7 @@ function executeConfirmedAction() {
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Active Staff</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $staff->where('is_active', true)->count() }}</p>
+                    <p class="text-2xl font-bold text-gray-900" id="counter-active_staff">{{ $activeStaff ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -87,7 +112,7 @@ function executeConfirmedAction() {
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Inactive Staff</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $staff->where('is_active', false)->count() }}</p>
+                    <p class="text-2xl font-bold text-gray-900" id="counter-inactive_staff">{{ $inactiveStaff ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -116,6 +141,7 @@ function executeConfirmedAction() {
                                             <i class="fas fa-user text-blue-600"></i>
                                         </div>
                                     </div>
+                                    @endif
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">
                                             {{ $member->first_name }} {{ $member->last_name }}
@@ -135,7 +161,11 @@ function executeConfirmedAction() {
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($member->is_active)
+                                @if(request('filter') === 'archived')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-archive mr-1"></i>Archived
+                                    </span>
+                                @elseif($member->is_active)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         <i class="fas fa-check-circle mr-1"></i>Active
                                     </span>
@@ -150,48 +180,62 @@ function executeConfirmedAction() {
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
-                                    <a href="{{ route('doctor.staff.show', $member) }}" 
-                                       class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200 text-sm" 
-                                       title="View Details">
-                                        View
-                                    </a>
-                                    
-                                    <a href="{{ route('doctor.staff.edit', $member) }}" 
-                                       class="text-yellow-600 hover:text-yellow-800 px-3 py-1 rounded-lg hover:bg-yellow-50 transition-all duration-200 text-sm" 
-                                       title="Edit Staff">
-                                        Edit
-                                    </a>
-
-                                    @if($member->id !== auth()->id())
-                                        <!-- Toggle Status Button -->
-                                        <form method="POST" action="{{ route('doctor.staff.toggle-status', $member) }}" 
-                                              class="inline" 
-                                              onsubmit="event.preventDefault(); showConfirmationModal('{{ $member->is_active ? 'Deactivate Staff' : 'Activate Staff' }}', 'Are you sure you want to {{ $member->is_active ? 'deactivate' : 'activate' }} this staff member?', this)">
+                                    @if(request('filter') === 'archived')
+                                        <!-- Restore Button for archived staff -->
+                                        <form method="POST" action="{{ route('doctor.staff.restore', $member) }}"
+                                              class="inline"
+                                              onsubmit="event.preventDefault(); showConfirmationModal('Restore Staff', 'Are you sure you want to restore this staff member?', this)">
                                             @csrf
-                                            @method('PATCH')
-                                            <button type="submit" 
-                                                    class="{{ $member->is_active ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' : 'text-green-600 hover:text-green-800 hover:bg-green-50' }} px-3 py-1 rounded-lg transition-all duration-200 text-sm" 
-                                                    title="{{ $member->is_active ? 'Deactivate' : 'Activate' }} Staff">
-                                                {{ $member->is_active ? 'Deactivate' : 'Activate' }}
-                                            </button>
-                                        </form>
-
-                                        <!-- Delete Button -->
-                                        <form method="POST" action="{{ route('doctor.staff.destroy', $member) }}" 
-                                              class="inline" 
-                                              onsubmit="event.preventDefault(); showConfirmationModal('Delete Staff', 'Are you sure you want to delete this staff member? This action cannot be undone.', this)">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-800 px-3 py-1 rounded-lg hover:bg-red-50 transition-all duration-200 text-sm" 
-                                                    title="Delete Staff">
-                                                Delete
+                                            <button type="submit"
+                                                    class="text-green-600 hover:text-green-800 px-3 py-1 rounded-lg hover:bg-green-50 transition-all duration-200 text-sm"
+                                                    title="Restore Staff">
+                                                <i class="fas fa-undo mr-1"></i>Restore
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-400 px-3 py-1 text-sm" title="Cannot modify your own account">
-                                            Locked
-                                        </span>
+                                        <a href="{{ route('doctor.staff.show', $member) }}"
+                                           class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200 text-sm"
+                                           title="View Details">
+                                            View
+                                        </a>
+
+                                        <a href="{{ route('doctor.staff.edit', $member) }}"
+                                           class="text-yellow-600 hover:text-yellow-800 px-3 py-1 rounded-lg hover:bg-yellow-50 transition-all duration-200 text-sm"
+                                           title="Edit Staff">
+                                            Edit
+                                        </a>
+
+                                        @if($member->id !== auth()->id())
+                                            <!-- Toggle Status Button -->
+                                            <form method="POST" action="{{ route('doctor.staff.toggle-status', $member) }}"
+                                                  class="inline"
+                                                  onsubmit="event.preventDefault(); showConfirmationModal('{{ $member->is_active ? 'Deactivate Staff' : 'Activate Staff' }}', 'Are you sure you want to {{ $member->is_active ? 'deactivate' : 'activate' }} this staff member?', this)">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                        class="{{ $member->is_active ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' : 'text-green-600 hover:text-green-800 hover:bg-green-50' }} px-3 py-1 rounded-lg transition-all duration-200 text-sm"
+                                                        title="{{ $member->is_active ? 'Deactivate' : 'Activate' }} Staff">
+                                                    {{ $member->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
+                                            </form>
+
+                                            <!-- Delete Button -->
+                                            <form method="POST" action="{{ route('doctor.staff.destroy', $member) }}"
+                                                  class="inline"
+                                                  onsubmit="event.preventDefault(); showConfirmationModal('Archive Staff', 'Are you sure you want to archive this staff member? This action can be undone.', this)">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="text-red-600 hover:text-red-800 px-3 py-1 rounded-lg hover:bg-red-50 transition-all duration-200 text-sm"
+                                                        title="Archive Staff">
+                                                    Archive
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-gray-400 px-3 py-1 text-sm" title="Cannot modify your own account">
+                                                Locked
+                                            </span>
+                                        @endif
                                     @endif
                                 </div>
                             </td>

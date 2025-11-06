@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Doctor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Consultation;
 use App\Models\Doctor;
 use App\Models\Patient;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
@@ -17,11 +19,9 @@ class ConsultationController extends Controller
     {
         $user = auth()->user();
 
-        // Admin users or users accessing admin routes can see all consultations
+        // Base query
         if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
-            $consultations = Consultation::with(['patient.user', 'appointment', 'doctor'])
-                ->orderBy('consultation_date', 'desc')
-                ->paginate(10);
+            $query = Consultation::with(['patient.user', 'appointment', 'doctor']);
         } else {
             $doctor = $user->doctor;
 
@@ -29,13 +29,42 @@ class ConsultationController extends Controller
                 return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
             }
 
-            $consultations = Consultation::where('doctor_id', $doctor->user_id)
-                ->with(['patient.user', 'appointment'])
-                ->orderBy('consultation_date', 'desc')
-                ->paginate(10);
+            $query = Consultation::where('doctor_id', $doctor->user_id)
+                ->with(['patient.user', 'appointment']);
         }
 
-        return view('admin.consultations.index', compact('consultations'));
+        // Apply search filter
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('chief_complaint', 'like', '%' . $search . '%')
+                  ->orWhere('present_illness', 'like', '%' . $search . '%')
+                  ->orWhereHas('patient', function($patientQuery) use ($search) {
+                      $patientQuery->where('full_name', 'like', '%' . $search . '%')
+                                   ->orWhereHas('user', function($userQuery) use ($search) {
+                                       $userQuery->where('first_name', 'like', '%' . $search . '%')
+                                                ->orWhere('last_name', 'like', '%' . $search . '%')
+                                                ->orWhere('email', 'like', '%' . $search . '%');
+                                   });
+                  });
+            });
+        }
+
+        // Apply status filter
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+
+        // Calculate statistics before pagination
+        $totalConsultations = $query->count();
+        $completedCount = (clone $query)->where('status', 'completed')->count();
+        $inProgressCount = (clone $query)->where('status', 'in_progress')->count();
+        $todayCount = (clone $query)->where('consultation_date', today())->count();
+
+        $consultations = $query->orderBy('consultation_date', 'desc')
+            ->paginate(10);
+
+        return view('admin.consultations.index', compact('consultations', 'totalConsultations', 'completedCount', 'inProgressCount', 'todayCount'));
     }
 
     /**
@@ -44,11 +73,21 @@ class ConsultationController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
+        $consultationDate = $request->get('consultation_date', date('Y-m-d'));
 
         // Admin users can see all patients and doctors
         if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
-            $patients = Patient::with('user')->get();
-            $doctors = Doctor::with('user')->get();
+            // Filter patients by confirmed appointments on the selected date
+            $patients = Patient::whereHas('appointments', function ($query) use ($consultationDate) {
+                $query->where('status', 'confirmed')
+                      ->whereDate('appointment_date', $consultationDate);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
+
+            $doctors = Doctor::with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
 
             // Set default doctor to "Dr. Augustus Caesar Butch B. Bigornia"
             $defaultDoctor = Doctor::whereHas('user', function ($query) {
@@ -64,13 +103,19 @@ class ConsultationController extends Controller
                 return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
             }
 
-            // Get patients who have appointments with this doctor
-            $patients = Patient::whereHas('appointments', function ($query) use ($doctor) {
-                $query->where('doctor_id', $doctor->user_id);
-            })->with('user')->get();
+            // Get patients who have confirmed appointments with this doctor on the selected date
+            $patients = Patient::whereHas('appointments', function ($query) use ($doctor, $consultationDate) {
+                $query->where('doctor_id', $doctor->user_id)
+                      ->where('status', 'confirmed')
+                      ->whereDate('appointment_date', $consultationDate);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
 
             // For doctors, only show themselves as the doctor option
-            $doctors = Doctor::where('id', $doctor->id)->with('user')->get();
+            $doctors = Doctor::where('id', $doctor->id)->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
             $selectedDoctorId = $doctor->id;
         }
 
@@ -90,7 +135,7 @@ class ConsultationController extends Controller
         $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'doctor_id' => 'required|exists:doctors,id',
-            'consultation_date' => 'required|date',
+            'consultation_date' => 'nullable|date',
             'chief_complaint' => 'required|string',
             'present_illness' => 'nullable|string',
             'past_medical_history' => 'nullable|string',
@@ -119,7 +164,7 @@ class ConsultationController extends Controller
             }
 
             // Verify the patient has an appointment with this doctor
-            $hasAppointment = \App\Models\Appointment::where('patient_id', $request->patient_id)
+            $hasAppointment = Appointment::where('patient_id', $request->patient_id)
                 ->where('doctor_id', $doctor->user_id)
                 ->exists();
 
@@ -167,7 +212,7 @@ class ConsultationController extends Controller
         $consultation = Consultation::create([
             'patient_id' => $request->patient_id,
             'doctor_id' => $doctorId,
-            'consultation_date' => $request->consultation_date,
+            'consultation_date' => $request->consultation_date ?? now()->toDateString(),
             'consultation_time' => now(),
             'chief_complaint' => $request->chief_complaint,
             'present_illness' => $request->present_illness,
@@ -197,8 +242,16 @@ class ConsultationController extends Controller
     public function show(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
+        // Admin users can view any consultation
+        if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
+            $consultation->load(['patient.user', 'patient.appointments', 'patient.consultations', 'appointment', 'doctor']);
+            $patient = $consultation->patient;
+            return view('admin.consultations.show', compact('consultation', 'patient'));
+        }
+
+        // For doctors, ensure they can only view their own consultations
+        $doctor = $user->doctor;
         if (! $doctor) {
             return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
         }
@@ -208,9 +261,10 @@ class ConsultationController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $consultation->load(['patient.user', 'appointment']);
+        $consultation->load(['patient.user', 'patient.appointments', 'patient.consultations', 'appointment', 'doctor']);
+        $patient = $consultation->patient;
 
-        return view('admin.consultations.show', compact('consultation'));
+        return view('admin.consultations.show', compact('consultation', 'patient'));
     }
 
     /**
@@ -219,8 +273,34 @@ class ConsultationController extends Controller
     public function edit(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
+        $consultationDate = $consultation->consultation_date ? Carbon::parse($consultation->consultation_date)->format('Y-m-d') : date('Y-m-d');
 
+        // Load consultation relationships
+        $consultation->load('patient.user');
+
+        // Admin users can edit any consultation
+        if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
+            // Get patients with confirmed appointments on the consultation date
+            $patients = Patient::whereHas('appointments', function ($query) use ($consultationDate) {
+                $query->where('status', 'confirmed')
+                      ->whereDate('appointment_date', $consultationDate);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
+
+            $doctors = Doctor::with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
+
+            $selectedPatientId = $consultation->patient_id;
+            $selectedDoctorId = $consultation->doctor_id;
+            $patient = $consultation->patient;
+
+            return view('admin.consultations.edit', compact('consultation', 'patients', 'doctors', 'selectedPatientId', 'selectedDoctorId', 'patient'));
+        }
+
+        // For doctors, ensure they can only edit their own consultations
+        $doctor = $user->doctor;
         if (! $doctor) {
             return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
         }
@@ -232,12 +312,18 @@ class ConsultationController extends Controller
 
         $patients = Patient::whereHas('appointments', function ($query) use ($doctor) {
             $query->where('doctor_id', $doctor->user_id);
-        })->with('user')->get();
+        })->with('user')->whereHas('user')->get();
 
         // For doctors, only show themselves as the doctor option
-        $doctors = Doctor::where('id', $doctor->id)->with('user')->get();
+        $doctors = Doctor::where('id', $doctor->id)->with('user')->whereHas('user', function ($query) {
+            $query->whereNull('deleted_at');
+        })->get();
 
-        return view('admin.consultations.edit', compact('consultation', 'patients', 'doctors'));
+        $selectedPatientId = $consultation->patient_id;
+        $selectedDoctorId = $consultation->doctor_id;
+        $patient = $consultation->patient;
+
+        return view('admin.consultations.edit', compact('consultation', 'patients', 'doctors', 'selectedPatientId', 'selectedDoctorId', 'patient'));
     }
 
     /**
@@ -246,43 +332,57 @@ class ConsultationController extends Controller
     public function update(Request $request, Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
+        
+        // Admin users can update any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $request->validate([
+        $validationRules = [
             'patient_id' => 'required|exists:patients,id',
-            'consultation_date' => 'required|date',
-            'consultation_time' => 'required',
+            'consultation_date' => 'nullable|date',
             'chief_complaint' => 'required|string',
-            'vital_signs' => 'nullable|string',
-            'diagnosis' => 'nullable|string',
-            'treatment_plan' => 'nullable|string',
-            'prescription' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
+            'present_illness' => 'nullable|string',
+            'past_medical_history' => 'nullable|string',
+            'medications' => 'nullable|string',
+            'allergies' => 'nullable|string',
+        ];
 
-        $consultation->update([
+        if ($isAdmin) {
+            $validationRules['doctor_id'] = 'required|exists:users,id';
+        }
+
+        $request->validate($validationRules);
+
+        $updateData = [
             'patient_id' => $request->patient_id,
-            'doctor_id' => $doctor->user_id,
-            'consultation_date' => $request->consultation_date,
-            'consultation_time' => $request->consultation_time,
+            'consultation_date' => $request->consultation_date ?? now()->toDateString(),
             'chief_complaint' => $request->chief_complaint,
-            'vital_signs' => $request->vital_signs,
-            'diagnosis' => $request->diagnosis,
-            'treatment_plan' => $request->treatment_plan,
-            'prescription' => $request->prescription,
-            'notes' => $request->notes,
-        ]);
+            'present_illness' => $request->present_illness,
+            'past_medical_history' => $request->past_medical_history,
+            'medications' => $request->medications,
+            'allergies' => $request->allergies,
+        ];
 
-        return redirect()->route('doctor.consultations.index')->with('success', 'Consultation updated successfully.');
+        if ($isAdmin) {
+            $updateData['doctor_id'] = $request->doctor_id;
+        } else {
+            $updateData['doctor_id'] = $doctor->user_id;
+        }
+
+        $consultation->update($updateData);
+
+        return redirect()->route('admin.consultations.index')->with('success', 'Consultation updated successfully.');
     }
 
     /**
@@ -291,20 +391,25 @@ class ConsultationController extends Controller
     public function destroy(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can delete any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         $consultation->delete();
 
-        return redirect()->route('doctor.consultations.index')->with('success', 'Consultation deleted successfully.');
+        return redirect()->route('admin.consultations.index')->with('success', 'Consultation deleted successfully.');
     }
 
     /**
@@ -313,15 +418,20 @@ class ConsultationController extends Controller
     public function physicalExam(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can access any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         return view('admin.consultations.physical-exam', compact('consultation'));
@@ -333,15 +443,20 @@ class ConsultationController extends Controller
     public function storePhysicalExam(Request $request, Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can update any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         $request->validate([
@@ -391,15 +506,20 @@ class ConsultationController extends Controller
     public function diagnosis(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can access any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         return view('admin.consultations.diagnosis', compact('consultation'));
@@ -411,15 +531,20 @@ class ConsultationController extends Controller
     public function storeDiagnosis(Request $request, Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can update any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         $request->validate([
@@ -436,7 +561,7 @@ class ConsultationController extends Controller
             'notes' => $request->notes,
         ]);
 
-        return redirect()->route('doctor.consultations.show', $consultation)->with('success', 'Diagnosis saved successfully.');
+        return redirect()->route('admin.consultations.show', $consultation)->with('success', 'Diagnosis saved successfully.');
     }
 
     /**
@@ -445,20 +570,25 @@ class ConsultationController extends Controller
     public function complete(Consultation $consultation)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
-        }
+        // Admin users can complete any consultation
+        $isAdmin = $user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.');
 
-        // Ensure the consultation belongs to the authenticated doctor
-        if ($consultation->doctor_id !== $doctor->user_id) {
-            abort(403, 'Unauthorized access.');
+        if (!$isAdmin) {
+            $doctor = $user->doctor;
+            if (! $doctor) {
+                return redirect()->route('admin.dashboard')->with('error', 'Doctor profile not found. Please contact administrator.');
+            }
+
+            // Ensure the consultation belongs to the authenticated doctor
+            if ($consultation->doctor_id !== $doctor->user_id) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         $consultation->update(['status' => 'completed']);
 
-        return redirect()->route('doctor.consultations.index')->with('success', 'Consultation marked as completed.');
+        return redirect()->route('admin.consultations.index')->with('success', 'Consultation marked as completed.');
     }
 
     /**
@@ -467,16 +597,84 @@ class ConsultationController extends Controller
     public function fetchPatientData(Request $request)
     {
         $user = auth()->user();
-        $doctor = $user->doctor;
 
-        if (! $doctor) {
-            return response()->json(['error' => 'Doctor profile not found'], 403);
+        // Admin users can fetch any patient
+        if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
+            $patient = Patient::with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->find($request->patient_id);
+        } else {
+            $doctor = $user->doctor;
+
+            if (! $doctor) {
+                return response()->json(['error' => 'Doctor profile not found'], 403);
+            }
+
+            $patient = Patient::whereHas('appointments', function ($query) use ($doctor) {
+                $query->where('doctor_id', $doctor->user_id);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->find($request->patient_id);
         }
 
-        $patient = Patient::whereHas('appointments', function ($query) use ($doctor) {
-            $query->where('doctor_id', $doctor->user_id);
-        })->with('user')->find($request->patient_id);
+        if (!$patient) {
+            return response()->json(['error' => 'Patient not found'], 404);
+        }
 
-        return response()->json($patient);
+        return response()->json(['success' => true, 'patient' => $patient]);
+    }
+
+    /**
+     * Fetch patients with confirmed appointments for a specific date.
+     */
+    public function fetchPatientsByDate(Request $request)
+    {
+        $user = auth()->user();
+        $date = $request->get('date', date('Y-m-d'));
+
+        if (!$date) {
+            return response()->json(['success' => false, 'message' => 'Date is required'], 400);
+        }
+
+        // Admin users can see all patients
+        if ($user->role === 'admin' || $user->username === 'admin_doctor' || str_starts_with(request()->route()->getName(), 'admin.')) {
+            $patients = Patient::whereHas('appointments', function ($query) use ($date) {
+                $query->where('status', 'confirmed')
+                      ->whereDate('appointment_date', $date);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
+        } else {
+            $doctor = $user->doctor;
+
+            if (! $doctor) {
+                return response()->json(['success' => false, 'message' => 'Doctor profile not found'], 403);
+            }
+
+            // Get patients who have confirmed appointments with this doctor on the selected date
+            $patients = Patient::whereHas('appointments', function ($query) use ($doctor, $date) {
+                $query->where('doctor_id', $doctor->user_id)
+                      ->where('status', 'confirmed')
+                      ->whereDate('appointment_date', $date);
+            })->with('user')->whereHas('user', function ($query) {
+                $query->whereNull('deleted_at');
+            })->get();
+        }
+
+        // Format patients for the select dropdown
+        $formattedPatients = $patients->filter(function ($patient) {
+            return isset($patient->user) && $patient->user;
+        })->map(function ($patient) {
+            $user = $patient->user;
+            return [
+                'id' => $patient->id,
+                'text' => ($user->first_name ?? '') . ' ' . ($user->last_name ?? '') . ' - ' . ($user->email ?? 'No Email'),
+                'first_name' => $user->first_name ?? '',
+                'last_name' => $user->last_name ?? '',
+                'email' => $user->email ?? 'No Email',
+            ];
+        })->values();
+
+        return response()->json(['success' => true, 'patients' => $formattedPatients]);
     }
 }

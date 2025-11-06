@@ -141,17 +141,6 @@
                     <div class="absolute top-0 right-0 w-16 h-16 bg-orange-100/50 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-300"></div>
                 </a>
                 
-                <!-- Prescriptions -->
-                <a href="{{ route('staff.prescriptions.index') }}" class="group relative overflow-hidden p-5 border border-gray-200 rounded-xl hover:border-pink-300 hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 transition-all duration-300 hover:shadow-lg hover:scale-105">
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-pills text-white text-xl"></i>
-                        </div>
-                        <span class="text-pink-900 font-semibold text-sm">Prescriptions</span>
-                    </div>
-                    <div class="absolute top-0 right-0 w-16 h-16 bg-pink-100/50 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-300"></div>
-                </a>
-                
                 <!-- Consultations -->
                 <a href="{{ route('staff.consultations.index') }}" class="group relative overflow-hidden p-5 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-gradient-to-br hover:from-indigo-50 hover:to-blue-50 transition-all duration-300 hover:shadow-lg hover:scale-105">
                     <div class="flex flex-col items-center text-center">

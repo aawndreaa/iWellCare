@@ -191,13 +191,13 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm font-semibold text-gray-900">
-                                ₱{{ number_format($daily['revenue'], 2) }}
+                                ₱{{ number_format($daily['revenue'], 0) }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 @if($daily['consultations'] > 0)
-                                    ₱{{ number_format($daily['revenue'] / $daily['consultations'], 2) }}
+                                    ₱{{ number_format($daily['revenue'] / $daily['consultations'], 0) }}
                                 @else
-                                    ₱0.00
+                                    ₱0
                                 @endif
                             </td>
                         </tr>

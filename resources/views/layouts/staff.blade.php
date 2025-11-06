@@ -287,11 +287,6 @@
                     <span class="font-medium">Inventory</span>
                 </a>
                 
-                <a href="{{ route('staff.prescriptions.index') }}" class="nav-item {{ request()->routeIs('staff.prescriptions.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
-                    <i class="fas fa-pills text-lg"></i>
-                    <span class="font-medium">Prescriptions</span>
-                </a>
-                
                 <a href="{{ route('staff.reports.index') }}" class="nav-item {{ request()->routeIs('staff.reports.*') ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 text-blue-100 hover:text-white">
                     <i class="fas fa-chart-bar text-lg"></i>
                     <span class="font-medium">Reports</span>
@@ -329,9 +324,6 @@
                     <p class="text-gray-600 mt-1">@yield('page-subtitle', 'Welcome to the staff panel')</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="bg-blue-50 px-4 py-2 rounded-lg">
-                        <span class="text-blue-600 font-medium">{{ now()->format('l, F j, Y') }}</span>
-                    </div>
                     <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                         <i class="fas fa-user-cog text-blue-600"></i>
                     </div>

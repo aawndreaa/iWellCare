@@ -16,8 +16,8 @@ class InventoryController extends Controller
         $query = Inventory::query();
 
         // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if ($request->filled('name')) {
+            $search = $request->name;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
@@ -30,25 +30,41 @@ class InventoryController extends Controller
             $query->where('category', $request->category);
         }
 
-        // Status filter
-        if ($request->filled('status')) {
-            switch ($request->status) {
+        // Stock status filter
+        if ($request->filled('stock_status')) {
+            switch ($request->stock_status) {
+                case 'in_stock':
+                    $query->where('quantity', '>', 0);
+                    break;
                 case 'low_stock':
-                    $query->whereRaw('quantity <= reorder_level');
+                    $query->whereRaw('quantity <= reorder_level AND quantity > 0');
                     break;
                 case 'out_of_stock':
                     $query->where('quantity', '<=', 0);
                     break;
-                case 'expiring':
-                    $query->where('expiration_date', '<=', now()->addDays(30))
-                        ->where('expiration_date', '>', now());
-                    break;
             }
         }
 
-        $inventory = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        switch ($sortBy) {
+            case 'quantity':
+                $query->orderBy('quantity', 'desc');
+                break;
+            case 'unit_price':
+                $query->orderBy('unit_price', 'desc');
+                break;
+            case 'created_at':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('name', 'asc');
+                break;
+        }
 
-        return view('doctor.inventory.index', compact('inventory'));
+        $inventory = $query->paginate(15);
+
+        return view('admin.inventory.index', compact('inventory'));
     }
 
     /**

@@ -1,7 +1,7 @@
 
 
 <?php $__env->startSection('content'); ?>
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-sky-100 to-sky-200">
     <!-- Doctor Availability Notification - Centered Top -->
     <div id="availabilityModal" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 shadow-lg rounded-lg z-[9999] hidden max-w-sm mx-auto">
         <div class="p-4">
@@ -10,10 +10,10 @@
                     <i class="fas fa-check-circle text-green-600"></i>
                 </div>
                 <div class="flex-1 text-center">
-                    <h3 class="text-base font-bold text-green-700 mb-1">All Doctors Available</h3>
+                    <h3 class="text-base font-bold text-green-700 mb-1">Dr. Bigornia is Available</h3>
                     <p class="text-sm text-gray-600 mb-2">Great news! You can book appointments now</p>
                     <span class="inline-block text-sm font-medium text-green-600 bg-white px-3 py-1 rounded-full border border-green-200">
-                        1 of 1 doctor available
+                        Available for appointments
                     </span>
                 </div>
                 <button onclick="closeAvailabilityModal()" class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2">
@@ -63,112 +63,83 @@
 
     <!-- Hero Section -->
     <div class="relative overflow-hidden">
-        <!-- Background Pattern -->
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 opacity-95"></div>
-        <div class="absolute inset-0 bg-pattern opacity-5"></div>
+        <!-- Background Image -->
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/assets/img/landing.png');"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-purple-900/85 to-indigo-900/90"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+        <div class="absolute inset-0 bg-pattern opacity-10"></div>
         
         <!-- Main Hero Content -->
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 hero-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
                 <!-- Left Side - Text Content -->
                 <div class="text-white">
-                    <div class="mb-8" data-aos="fade-right">
-                        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                            Welcome to 
+                    <div class="mb-6 md:mb-8" data-aos="fade-right">
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 md:mb-6 leading-tight hero-title">
+                            Welcome to
                             <span class="gradient-text bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
                                 iWellCare
                             </span>
                         </h1>
-                        <p class="text-xl md:text-2xl mb-8 leading-relaxed text-blue-100">
-                            <strong>Your Health, Our Priority - Excellence in Healthcare, Compassion in Care.</strong> Discover comprehensive medical excellence with our advanced diagnostics, personalized treatment plans, and dedicated healthcare professionals. Experience the future of healthcare where cutting-edge technology meets compassionate patient care in our state-of-the-art facilities.
+                        <p class="text-lg sm:text-xl md:text-2xl mb-6 md:mb-8 leading-relaxed text-white hero-subtitle drop-shadow-lg">
+                            <strong>Your Health, Our Priority - Excellence in Healthcare, Compassion in Care.</strong> Discover comprehensive medical excellence with our advanced diagnostics, personalized treatment plans, and dedicated healthcare professionals. Experience the future of healthcare where cutting-edge technology meets compassionate patient care in our state-of-the-art facilities designed for your comfort and well-being.
                         </p>
                     </div>
-                    
-                    <div class="flex flex-col sm:flex-row gap-6" data-aos="fade-up" data-aos-delay="200">
+
+                    <div class="flex flex-col sm:flex-row gap-4 md:gap-6 hero-buttons" data-aos="fade-up" data-aos-delay="200">
                         <button onclick="handleBookAppointment()"
-                           class="group bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-900 font-bold py-4 px-8 rounded-xl text-lg shadow-xl hover:shadow-2xl">
+                            class="group bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl text-base md:text-lg shadow-xl hover:shadow-2xl hero-button drop-shadow-lg transform hover:scale-105 transition-all duration-300">
                             <i class="fas fa-calendar-plus mr-2"></i>
                             Book Appointment
                         </button>
                     </div>
                 </div>
                 
-                <!-- Right Side - Health Image -->
+                <!-- Right Side - Clinic Hours -->
                 <div class="flex justify-center lg:justify-end" data-aos="fade-left">
-                    <img src="<?php echo e(asset('assets/img/health.png')); ?>" alt="Healthcare" class="w-full max-w-md lg:max-w-lg xl:max-w-xl h-auto rounded-2xl shadow-2xl">
+                    <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-md lg:max-w-lg xl:max-w-xl w-full">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Clinic Hours</h3>
+                        <div class="space-y-3">
+                            <!-- Monday - Friday -->
+                            <div class="flex items-center justify-between py-3 px-2 rounded-lg bg-blue-50 border border-blue-100">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-calendar-week text-blue-500 text-sm"></i>
+                                    <span class="font-medium text-gray-700">Mon - Fri</span>
+                                </div>
+                                <span class="text-blue-600 font-semibold bg-white px-3 py-1 rounded-full text-sm">9:00 AM - 2:00 PM</span>
+                            </div>
+
+                            <!-- Saturday -->
+                            <div class="flex items-center justify-between py-3 px-2 rounded-lg bg-green-50 border border-green-100">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-calendar-day text-green-500 text-sm"></i>
+                                    <span class="font-medium text-gray-700">Saturday</span>
+                                </div>
+                                <span class="text-green-600 font-semibold bg-white px-3 py-1 rounded-full text-sm">9:00 AM - 2:00 PM</span>
+                            </div>
+
+                            <!-- Sunday -->
+                            <div class="flex items-center justify-between py-3 px-2 rounded-lg bg-red-50 border border-red-100">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-calendar-times text-red-500 text-sm"></i>
+                                    <span class="font-medium text-gray-700">Sunday</span>
+                                </div>
+                                <span class="text-red-600 font-semibold bg-white px-3 py-1 rounded-full text-sm">Closed</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-600">Call: <span class="font-semibold text-blue-600">09352410173</span></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Clinic Hours Section - Positioned prominently after Hero -->
-    <div class="py-12 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-blue-100">
-        <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Clinic Hours</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                We're here to serve you with flexible hours to accommodate your busy schedule.
-            </p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto px-4">
-            <!-- Monday - Friday -->
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" data-aos="fade-up">
-                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-calendar-day text-white text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-3 text-center">Monday - Friday</h3>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600 mb-1">9:00 AM</p>
-                    <p class="text-gray-600 text-sm">to</p>
-                    <p class="text-2xl font-bold text-blue-600 mb-2">2:00 PM</p>
-                    <p class="text-green-600 font-semibold text-sm">Open</p>
-                </div>
-            </div>
-            
-            <!-- Saturday -->
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" data-aos="fade-up" data-aos-delay="100">
-                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-calendar-day text-white text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-3 text-center">Saturday</h3>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-green-600 mb-1">9:00 AM</p>
-                    <p class="text-gray-600 text-sm">to</p>
-                    <p class="text-2xl font-bold text-green-600 mb-2">2:00 PM</p>
-                    <p class="text-green-600 font-semibold text-sm">Open</p>
-                </div>
-            </div>
-
-            <!-- Sunday -->
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" data-aos="fade-up" data-aos-delay="200">
-                <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-calendar-day text-white text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-3 text-center">Sunday</h3>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-red-600 mb-2">Closed</p>
-                    <p class="text-gray-600 text-sm">Emergency Only</p>
-                    <p class="text-red-600 font-semibold text-sm">Closed</p>
-                </div>
-            </div>
-
-            <!-- Emergency Services -->
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" data-aos="fade-up" data-aos-delay="300">
-                <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-phone-alt text-white text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-3 text-center">Emergency</h3>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-orange-600 mb-2">24/7</p>
-                    <p class="text-gray-600 text-sm">Available</p>
-                    <p class="text-orange-600 font-semibold text-sm">Call: 09352410173</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Services Section -->
-    <div id="services" class="py-20 bg-white">
+    <div id="services" class="py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16" data-aos="fade-up">
                 <h2 class="text-4xl font-bold text-gray-900 mb-6">Our Services</h2>
@@ -177,13 +148,13 @@
                 </p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 services-grid">
                 <!-- General Consultation -->
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg hover:shadow-xl" data-aos="fade-up">
-                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-user-md text-white text-2xl"></i>
+                <div class="bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl service-card border border-blue-200/50" data-aos="fade-up">
+                    <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 service-icon shadow-lg">
+                        <i class="fas fa-user-md text-white text-xl md:text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">General Consultation</h3>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4 text-center service-title">General Consultation</h3>
                     <p class="text-gray-600 text-center mb-6">
                         Comprehensive health assessments and medical consultations with our experienced healthcare professionals.
                     </p>
@@ -204,11 +175,11 @@
                 </div>
                 
                 <!-- Laboratory Services -->
-                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg hover:shadow-xl" data-aos="fade-up" data-aos-delay="100">
-                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-flask text-white text-2xl"></i>
+                <div class="bg-gradient-to-br from-green-50 via-emerald-100 to-teal-100 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl service-card border border-green-200/50" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 service-icon shadow-lg">
+                        <i class="fas fa-flask text-white text-xl md:text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Laboratory Services</h3>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4 text-center service-title">Laboratory Services</h3>
                     <p class="text-gray-600 text-center mb-6">
                         State-of-the-art laboratory testing and diagnostic services for accurate health assessments.
                     </p>
@@ -229,11 +200,11 @@
                 </div>
                 
                 <!-- Pharmacy Services -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg hover:shadow-xl" data-aos="fade-up" data-aos-delay="200">
-                    <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-pills text-white text-2xl"></i>
+                <div class="bg-gradient-to-br from-purple-50 via-violet-100 to-indigo-100 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl service-card border border-purple-200/50" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 service-icon shadow-lg">
+                        <i class="fas fa-pills text-white text-xl md:text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Pharmacy Services</h3>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4 text-center service-title">Pharmacy Services</h3>
                     <p class="text-gray-600 text-center mb-6">
                         Complete pharmacy services with prescription medications and over-the-counter products for your healthcare needs.
                     </p>
@@ -257,7 +228,7 @@
     </div>
 
     <!-- Contact Section -->
-    <div id="contact" class="py-20 bg-gradient-to-br from-white to-gray-50">
+    <div id="contact" class="py-20 bg-gradient-to-br from-slate-100 via-purple-50/30 to-indigo-50/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16" data-aos="fade-up">
                 <h2 class="text-4xl font-bold text-gray-900 mb-6">Contact Us</h2>
@@ -265,29 +236,29 @@
                     Have questions? We're here to help. Get in touch with us today.
                 </p>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 contact-grid">
                 <!-- Phone -->
                 <div class="text-center" data-aos="fade-up">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <i class="fas fa-phone text-white text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
                     <p class="text-gray-600">09352410173</p>
                 </div>
-                
+
                 <!-- Email -->
                 <div class="text-center" data-aos="fade-up" data-aos-delay="100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <i class="fas fa-envelope text-white text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Email</h3>
                     <p class="text-gray-600">adultwellnessclinicandmedicall@gmail.com</p>
                 </div>
-                
+
                 <!-- Address -->
                 <div class="text-center" data-aos="fade-up" data-aos-delay="200">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <i class="fas fa-map-marker-alt text-white text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Address</h3>
@@ -296,6 +267,7 @@
             </div>
         </div>
     </div>
+
 
 </div>
 
@@ -340,17 +312,202 @@
     }
 }
 
-/* Responsive modal sizing */
-@media (max-width: 640px) {
+/* Mobile enhancements */
+@media (max-width: 768px) {
+    /* Hero section mobile adjustments */
+    .hero-content {
+        padding: 1.5rem 1rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.875rem;
+        line-height: 1.3;
+        margin-bottom: 1rem;
+    }
+
+    /* Button adjustments */
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .hero-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Services grid */
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Contact grid */
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Clinic hours grid */
+    .clinic-hours-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* Modal adjustments */
+    #authChoiceModal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 1rem;
+    }
+
     #authChoiceModal .bg-white {
-        width: 90vw;
+        width: 100%;
         max-width: 320px;
-        margin: 0 1rem;
+        margin: 0 auto;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    #authChoiceModal h3 {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+    }
+
+    #authChoiceModal p {
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Button adjustments for mobile */
+    #authChoiceModal button {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-sizing: border-box;
+        line-height: 1.2;
+        position: relative;
+        z-index: 10;
+        cursor: pointer;
+        border: none;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ensure consistent button heights */
+    #authChoiceModal button:first-of-type,
+    #authChoiceModal button:nth-of-type(2) {
+        height: auto;
+        min-height: 48px;
+    }
+
+    /* Ensure buttons are clickable */
+    #authChoiceModal button:active {
+        transform: scale(0.98);
+    }
+
+    #authChoiceModal button:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Ensure modal content doesn't overflow */
+    #authChoiceModal .bg-white {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Close button adjustments */
+    #authChoiceModal button[onclick*="closeAuthChoiceModal"] {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin-top: 1rem;
+    }
+
+    /* Availability modal */
+    #availabilityModal {
+        max-width: 90vw;
+        margin: 1rem;
+        top: 10rem; /* Move much further down on mobile to avoid overlapping title */
+    }
+
+    /* Desktop positioning for availability modal */
+    @media (min-width: 769px) {
+        #availabilityModal {
+            top: 1rem; /* Original position for desktop */
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    /* Extra small screens */
+    .hero-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.8rem;
+        line-height: 1.3;
+        margin-bottom: 0.75rem;
+    }
+
+    .clinic-hours-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Services cards */
+    .service-card {
+        padding: 1rem;
+    }
+
+    .service-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .service-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+    .card-hover:hover {
+        transform: none;
+    }
+
+    button, .btn {
+        min-height: 44px;
+        min-width: 44px;
     }
 }
 </style>
 
 <script>
+window.isAuthenticated = <?php if(auth()->guard()->check()): ?> true <?php else: ?> false <?php endif; ?>;
+
 function handleBookAppointment() {
     // Check if user is authenticated
     <?php if(auth()->guard()->check()): ?>
@@ -399,6 +556,11 @@ function animateModalElements(modal) {
 }
 
 function checkDoctorAvailability() {
+    // Only show modal for guest users
+    if (window.isAuthenticated) {
+        return;
+    }
+
     // Fetch doctor availability from API
     fetch('/api/doctors/available')
         .then(response => response.json())
@@ -408,30 +570,26 @@ function checkDoctorAvailability() {
                 const title = modal.querySelector('h3');
                 const subtitle = modal.querySelector('p');
                 const badge = modal.querySelector('.inline-block');
-                const icon = modal.querySelector('.w-8.h-8');
-                const iconContainer = modal.querySelector('.w-8.h-8').parentElement;
+                const icon = modal.querySelector('i');
+                const iconContainer = modal.querySelector('.w-10.h-10');
 
-                if (data.available === data.total && data.total > 0) {
-                    // All doctors available
-                    title.textContent = 'All Doctors Available';
+                // Check if Dr. Bigornia (user_id: 2) is available
+                const doctorBigornia = data.doctors.find(doctor => doctor.id === 2);
+                const isBigorniaAvailable = doctorBigornia && doctorBigornia.is_available;
+
+                if (isBigorniaAvailable) {
+                    // Dr. Bigornia is available
+                    title.textContent = 'Dr. Bigornia is Available';
                     subtitle.textContent = 'Great news! You can book appointments now';
-                    badge.textContent = `${data.available} of ${data.total} doctors available`;
+                    badge.textContent = 'Doctor is available';
                     badge.className = 'inline-block text-xs font-medium text-green-600 bg-white px-2 py-1 rounded-full border border-green-200';
                     iconContainer.className = 'w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0';
                     icon.className = 'fas fa-check-circle text-green-600 text-sm';
-                } else if (data.available > 0) {
-                    // Some doctors available
-                    title.textContent = 'Doctors Available';
-                    subtitle.textContent = 'Some doctors are available for appointments';
-                    badge.textContent = `${data.available} of ${data.total} doctors available`;
-                    badge.className = 'inline-block text-xs font-medium text-blue-600 bg-white px-2 py-1 rounded-full border border-blue-200';
-                    iconContainer.className = 'w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0';
-                    icon.className = 'fas fa-info-circle text-blue-600 text-sm';
                 } else {
-                    // No doctors available
-                    title.textContent = 'No Doctors Available';
+                    // Dr. Bigornia is not available
+                    title.textContent = 'Dr. Bigornia is Not Available';
                     subtitle.textContent = 'Please check back later or contact us';
-                    badge.textContent = `${data.available} of ${data.total} doctors available`;
+                    badge.textContent = 'Doctor is not available';
                     badge.className = 'inline-block text-xs font-medium text-red-600 bg-white px-2 py-1 rounded-full border border-red-200';
                     iconContainer.className = 'w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0';
                     icon.className = 'fas fa-exclamation-triangle text-red-600 text-sm';
@@ -522,20 +680,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (authChoiceModal) {
         authChoiceModal.classList.add('hidden');
     }
-    
+
+    <?php if(auth()->guard()->guest()): ?>
     // Show the availability modal after a short delay for better UX
     setTimeout(() => {
-        if (modal) {
-            modal.classList.remove('hidden');
-        }
-        
-        // Automatically close the modal after 10 seconds
-        setTimeout(() => {
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }, 10000); // 10 seconds
+        checkDoctorAvailability();
     }, 1000); // 1 second delay
+    <?php endif; ?>
     
     // Add click outside to close functionality
     document.addEventListener('click', function(event) {

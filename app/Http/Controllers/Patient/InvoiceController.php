@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
-use App\Models\Billing;
+use App\Models\Invoice;
 use App\Models\Patient;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -14,7 +14,30 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $patient = $user->patient;
 
-        $invoices = Billing::where('patient_id', $patient->id)
+        if (!$patient) {
+            // If patient record doesn't exist, create it
+            $patient = Patient::create([
+                'user_id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'contact' => $user->phone_number,
+                'email' => $user->email,
+                'address' => $user->street_address,
+                'date_of_birth' => $user->date_of_birth ?? '1990-01-01',
+                'gender' => $user->gender ?? 'other',
+                'blood_type' => 'O+',
+                'emergency_contact' => 'Emergency Contact',
+                'emergency_contact_phone' => $user->phone_number,
+                'medical_history' => 'No significant medical history',
+                'allergies' => 'None known',
+                'current_medications' => 'None',
+                'insurance_provider' => 'Health Insurance Co.',
+                'insurance_number' => 'INS'.rand(100000000, 999999999),
+                'is_active' => true,
+            ]);
+        }
+
+        $invoices = Invoice::where('patient_id', $patient->id)
             ->with(['appointment', 'patient'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -22,23 +45,34 @@ class InvoiceController extends Controller
         return view('patient.invoice.index', compact('invoices'));
     }
 
-    public function show(Billing $invoice)
+    public function show(Invoice $invoice)
     {
         $user = auth()->user();
         $patient = $user->patient;
+
+        if (!$patient) {
+            abort(403, 'Patient record not found.');
+        }
 
         // Ensure the invoice belongs to the authenticated patient
         if ($invoice->patient_id !== $patient->id) {
             abort(403, 'Unauthorized access.');
         }
 
+        // Load relationships
+        $invoice->load(['patient.user', 'appointment', 'createdBy']);
+
         return view('patient.invoice.show', compact('invoice'));
     }
 
-    public function download(Billing $invoice)
+    public function download(Invoice $invoice)
     {
         $user = auth()->user();
         $patient = $user->patient;
+
+        if (!$patient) {
+            abort(403, 'Patient record not found.');
+        }
 
         // Ensure the invoice belongs to the authenticated patient
         if ($invoice->patient_id !== $patient->id) {

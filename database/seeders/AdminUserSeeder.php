@@ -20,6 +20,7 @@ class AdminUserSeeder extends Seeder
             User::create([
                 'first_name' => 'Admin',
                 'last_name' => 'User',
+                'full_name' => 'Admin User',
                 'username' => 'admin',
                 'email' => 'admin@iwellcare.com',
                 'email_verified_at' => now(),
@@ -29,7 +30,7 @@ class AdminUserSeeder extends Seeder
                 'city' => 'Admin City',
                 'state_province' => 'Admin State',
                 'postal_code' => '00000',
-                'role' => 'doctor',
+                'role' => 'admin',
                 'is_active' => true,
             ]);
 

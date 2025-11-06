@@ -15,7 +15,9 @@ class DoctorAvailabilityController extends Controller
      */
     public function index()
     {
-        $doctors = Doctor::with('user')
+        $doctors = Doctor::with(['user', 'availabilitySettings' => function ($query) {
+            $query->latest();
+        }])
             ->orderBy('user_id')
             ->get();
 

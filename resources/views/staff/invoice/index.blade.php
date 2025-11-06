@@ -11,7 +11,7 @@
             <i class="fas fa-file-invoice-dollar text-blue-600 text-2xl"></i>
         </div>
         <div class="text-gray-500 text-sm font-medium mb-1">Total Invoices</div>
-        <div class="text-3xl font-bold text-blue-700 mb-2">{{ $billings->total() }}</div>
+        <div class="text-3xl font-bold text-blue-700 mb-2">{{ $invoices->total() }}</div>
         <div class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">All Time</div>
     </div>
     
@@ -20,7 +20,7 @@
             <i class="fas fa-check-circle text-green-600 text-2xl"></i>
         </div>
         <div class="text-gray-500 text-sm font-medium mb-1">Paid Invoices</div>
-        <div class="text-3xl font-bold text-green-700 mb-2">{{ $billings->filter(fn($b) => $b->status === 'paid')->count() }}</div>
+        <div class="text-3xl font-bold text-green-700 mb-2">{{ $invoices->filter(fn($b) => $b->status === 'paid')->count() }}</div>
         <div class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Completed</div>
     </div>
     
@@ -29,7 +29,7 @@
             <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
         </div>
         <div class="text-gray-500 text-sm font-medium mb-1">Unpaid Invoices</div>
-        <div class="text-3xl font-bold text-yellow-700 mb-2">{{ $billings->filter(fn($b) => $b->status === 'unpaid')->count() }}</div>
+        <div class="text-3xl font-bold text-yellow-700 mb-2">{{ $invoices->filter(fn($b) => $b->status === 'unpaid')->count() }}</div>
         <div class="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Pending</div>
     </div>
 </div>
@@ -79,73 +79,73 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($billings as $billing)
+                @forelse($invoices as $invoice)
                     <tr class="hover:bg-blue-50 transition">
                         <td class="py-3 px-4 flex items-center gap-3">
                             <span class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-600 font-bold text-lg">
-                                {{ strtoupper(substr($billing->patient->first_name ?? '-', 0, 1)) }}
+                                {{ strtoupper(substr($invoice->patient->first_name ?? '-', 0, 1)) }}
                             </span>
                             <div>
-                                <div class="font-medium">{{ $billing->patient->first_name ?? '-' }} {{ $billing->patient->last_name ?? '' }}</div>
-                                <div class="text-xs text-gray-500">{{ $billing->patient->email ?? '' }}</div>
+                                <div class="font-medium">{{ $invoice->patient->first_name ?? '-' }} {{ $invoice->patient->last_name ?? '' }}</div>
+                                <div class="text-xs text-gray-500">{{ $invoice->patient->email ?? '' }}</div>
                             </div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">{{ $billing->appointment ? $billing->appointment->appointment_date->format('M d, Y') : '-' }}</div>
-                            <div class="text-xs text-gray-500">{{ $billing->appointment ? $billing->appointment->appointment_time->format('h:i A') : '' }}</div>
+                            <div class="font-medium">{{ $invoice->appointment ? $invoice->appointment->appointment_date->format('M d, Y') : '-' }}</div>
+                            <div class="text-xs text-gray-500">{{ $invoice->appointment ? $invoice->appointment->appointment_time->format('h:i A') : '' }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">₱{{ number_format($billing->consultation_fee ?? 0, 2) }}</div>
+                            <div class="font-medium">₱{{ number_format($invoice->consultation_fee ?? 0, 0) }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">₱{{ number_format($billing->medication_fee ?? 0, 2) }}</div>
+                            <div class="font-medium">₱{{ number_format($invoice->medication_fee ?? 0, 0) }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">₱{{ number_format($billing->laboratory_fee ?? 0, 2) }}</div>
+                            <div class="font-medium">₱{{ number_format($invoice->laboratory_fee ?? 0, 0) }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">₱{{ number_format($billing->other_fees ?? 0, 2) }}</div>
+                            <div class="font-medium">₱{{ number_format($invoice->other_fees ?? 0, 0) }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-bold text-lg">₱{{ number_format($billing->total_amount ?? $billing->amount, 2) }}</div>
+                            <div class="font-bold text-lg">₱{{ number_format($invoice->total_amount ?? $invoice->amount, 0) }}</div>
                         </td>
                         <td class="py-3 px-4">
                             @php
-                                $badge = $billing->status === 'paid' 
-                                    ? 'bg-green-100 text-green-700 border-green-200' 
+                                $badge = $invoice->status === 'paid'
+                                    ? 'bg-green-100 text-green-700 border-green-200'
                                     : 'bg-yellow-100 text-yellow-700 border-yellow-200';
                             @endphp
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border {{ $badge }}">
-                                <i class="fas fa-circle mr-2 text-[6px]"></i> {{ ucfirst($billing->status) }}
+                                <i class="fas fa-circle mr-2 text-[6px]"></i> {{ ucfirst($invoice->status) }}
                             </span>
                         </td>
                         <td class="py-3 px-4">
-                            <div class="font-medium">{{ $billing->payment_date ? \Carbon\Carbon::parse($billing->payment_date)->format('M d, Y') : '-' }}</div>
-                            <div class="text-xs text-gray-500">{{ $billing->payment_date ? \Carbon\Carbon::parse($billing->payment_date)->format('h:i A') : '' }}</div>
+                            <div class="font-medium">{{ $invoice->payment_date ? \Carbon\Carbon::parse($invoice->payment_date)->format('M d, Y') : '-' }}</div>
+                            <div class="text-xs text-gray-500">{{ $invoice->payment_date ? \Carbon\Carbon::parse($invoice->payment_date)->format('h:i A') : '' }}</div>
                         </td>
                         <td class="py-3 px-4">
                             <div class="flex gap-2">
-                                @if($billing->status === 'unpaid')
-                                    <a href="{{ route('staff.invoice.mark-as-paid', $billing->id) }}"
+                                @if($invoice->status === 'unpaid')
+                                    <a href="{{ route('staff.invoice.mark-as-paid', $invoice->id) }}"
                                        class="btn btn-success btn-sm flex items-center gap-1 !w-24 justify-center"
                                        onclick="return confirm('Mark this invoice as paid?')">
                                         <i class="fas fa-check"></i> Mark Paid
                                     </a>
                                 @endif
-                                <a href="{{ route('staff.invoice.generate-pdf', $billing->id) }}"
+                                <a href="{{ route('staff.invoice.generate-pdf', $invoice->id) }}"
                                    class="btn btn-primary btn-sm flex items-center gap-1 !w-24 justify-center">
                                     <i class="fas fa-file-pdf"></i> Download PDF
                                 </a>
-                                <a href="{{ route('staff.invoice.generate-pdf', [$billing->id, 'print' => 1]) }}" target="_blank"
+                                <a href="{{ route('staff.invoice.generate-pdf', [$invoice->id, 'print' => 1]) }}" target="_blank"
                                    class="btn btn-secondary btn-sm flex items-center gap-1 !w-24 justify-center">
                                     <i class="fas fa-print"></i> Print
                                 </a>
-                                <form action="{{ route('staff.invoice.destroy', $billing->id) }}" method="POST" class="inline delete-invoice-form">
+                                <form action="{{ route('staff.invoice.destroy', $invoice->id) }}" method="POST" class="inline delete-invoice-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="delete-invoice-btn btn btn-secondary btn-sm flex items-center gap-1 !w-24 justify-center !text-orange-700 !bg-orange-50 !border-orange-200 hover:!bg-orange-600 hover:!text-white"
-                                            data-patient="{{ $billing->patient->first_name ?? '' }} {{ $billing->patient->last_name ?? '' }}"
-                                            data-amount="{{ number_format($billing->total_amount ?? $billing->amount, 2) }}"
+                                            data-patient="{{ $invoice->patient->first_name ?? '' }} {{ $invoice->patient->last_name ?? '' }}"
+                                            data-amount="{{ number_format($invoice->total_amount ?? $invoice->amount, 0) }}"
                                             onclick="return false;">
                                         <i class="fas fa-archive"></i>
                                         <span>Archive</span>
@@ -170,7 +170,7 @@
     </div>
     
     <div class="mt-6">
-        {{ $billings->links() }}
+        {{ $invoices->links() }}
     </div>
 </div>
 

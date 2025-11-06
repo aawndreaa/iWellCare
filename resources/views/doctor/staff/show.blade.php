@@ -130,12 +130,12 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-danger w-full">
-                                    <i class="fas fa-trash mr-2"></i>Delete Staff Member
+                                    <i class="fas fa-archive mr-2"></i>Archive Staff Member
                                 </button>
                             </form>
                         @else
                             <button disabled class="btn-secondary w-full opacity-50 cursor-not-allowed">
-                                <i class="fas fa-trash mr-2"></i>Cannot Delete Own Account
+                                <i class="fas fa-archive mr-2"></i>Cannot Archive Own Account
                             </button>
                         @endif
                     </div>

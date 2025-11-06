@@ -36,13 +36,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-user text-gray-400 mr-2"></i>Search Patient
                     </label>
-                    <input type="text" id="search" placeholder="Search by patient name..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <input type="text" id="search" name="search" placeholder="Search by patient name..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-filter text-gray-400 mr-2"></i>Status
                     </label>
-                    <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <select id="status" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                         <option value="">All Statuses</option>
                         <option value="active">Active</option>
                         <option value="completed">Completed</option>
@@ -53,7 +53,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-calendar text-gray-400 mr-2"></i>Date Range
                     </label>
-                    <input type="date" id="date-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <input type="date" id="date_from" name="date_from" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                 </div>
             </div>
         </div>
@@ -138,8 +138,8 @@
                                     <a href="{{ route('staff.prescriptions.show', $prescription->id ?? 1) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
                                         <i class="fas fa-eye mr-1"></i>View
                                     </a>
-                                    <button onclick="deletePrescription({{ $prescription->id ?? 1 }})" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                                        <i class="fas fa-trash mr-1"></i>Delete
+                                    <button onclick="archivePrescription({{ $prescription->id ?? 1 }})" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                                        <i class="fas fa-archive mr-1"></i>Archive
                                     </button>
                                 </div>
                             </td>
@@ -201,17 +201,48 @@ function deletePrescription(id) {
     }
 }
 
-// Search functionality
-document.getElementById('search').addEventListener('input', function() {
-    // Implement search logic here
-});
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const filters = ['search', 'status', 'date_from'];
 
-document.getElementById('status-filter').addEventListener('change', function() {
-    // Implement status filter logic here
-});
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                // Build query string from current filter values
+                const params = new URLSearchParams(window.location.search);
 
-document.getElementById('date-filter').addEventListener('change', function() {
-    // Implement date filter logic here
+                // Update the changed filter
+                if (this.value) {
+                    params.set(this.name, this.value);
+                } else {
+                    params.delete(this.name);
+                }
+
+                // Navigate to the new URL
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.location.href = newUrl;
+            });
+
+            // For search input, add input event listener with debounce
+            if (filterId === 'search') {
+                let debounceTimer;
+                element.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const params = new URLSearchParams(window.location.search);
+                        if (this.value.trim()) {
+                            params.set(this.name, this.value.trim());
+                        } else {
+                            params.delete(this.name);
+                        }
+                        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                        window.location.href = newUrl;
+                    }, 300); // 300ms debounce
+                });
+            }
+        }
+    });
 });
 </script>
 @endsection

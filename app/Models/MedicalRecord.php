@@ -7,9 +7,52 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $patient_id
+ * @property int $doctor_id
+ * @property int $consultation_id
+ * @property \Carbon\Carbon $record_date
+ * @property string $record_type
+ * @property string $title
+ * @property string $description
+ * @property string $diagnosis
+ * @property string $treatment_plan
+ * @property array $medications
+ * @property array $allergies
+ * @property array $clinical_measurements
+ * @property array $lab_results
+ * @property array $imaging_results
+ * @property string $notes
+ * @property string $status
+ * @property string $file_path
+ * @property string $file_name
+ * @property int $file_size
+ * @property string $file_type
+ */
 class MedicalRecord extends Model
 {
     use HasFactory;
+
+    protected $patient_id;
+    protected $doctor_id;
+    protected $consultation_id;
+    protected $record_date;
+    protected $record_type;
+    protected $title;
+    protected $description;
+    protected $diagnosis;
+    protected $treatment_plan;
+    protected $medications;
+    protected $allergies;
+    protected $clinical_measurements;
+    protected $lab_results;
+    protected $imaging_results;
+    protected $notes;
+    protected $status;
+    protected $file_path;
+    protected $file_name;
+    protected $file_size;
+    protected $file_type;
 
     protected $fillable = [
         'patient_id',
@@ -135,12 +178,12 @@ class MedicalRecord extends Model
      */
     public function getFormattedFileSizeAttribute(): string
     {
-        if (! $this->file_size) {
+        if (! $this->getAttribute('file_size')) {
             return 'N/A';
         }
 
         $units = ['B', 'KB', 'MB', 'GB'];
-        $size = $this->file_size;
+        $size = $this->getAttribute('file_size');
         $unit = 0;
 
         while ($size >= 1024 && $unit < count($units) - 1) {

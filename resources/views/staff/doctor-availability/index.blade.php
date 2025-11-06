@@ -1,48 +1,38 @@
 @extends('layouts.staff')
 
-@section('title', 'Doctor Availability Management - iWellCare')
-@section('page-title', 'Doctor Availability Management')
-@section('page-subtitle', 'Manage doctor availability status')
+@section('title', 'Doctor Availability - iWellCare')
+@section('page-title', 'Doctor Availability')
+@section('page-subtitle', 'Manage doctor availability for appointments and consultations')
 
 @section('content')
 <div class="doctor-availability-content">
-    <!-- Header Actions -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Doctor Availability</h2>
-            <p class="text-gray-600">Manage doctor availability for appointments and consultations</p>
-        </div>
-        <a href="{{ route('staff.doctor-availability.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus mr-2"></i>Set Availability
-        </a>
-    </div>
 
     <!-- Doctor Status Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
         @foreach($doctors as $doctor)
-        <div class="card p-6">
-            <div class="flex items-center justify-between mb-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user-md text-blue-600 text-xl"></i>
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-md text-white text-lg"></i>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900">Dr. {{ $doctor->user->first_name ?? '' }} {{ $doctor->user->last_name ?? '' }}</h3>
-                        <p class="text-sm text-gray-500">{{ $doctor->specialization }}</p>
+                        <p class="text-sm text-gray-500">{{ $doctor->specialization ?? 'General Medicine' }}</p>
                     </div>
                 </div>
                 @php
                     $latestSetting = $doctor->availabilitySettings->first();
                     $status = $latestSetting ? $latestSetting->getCurrentStatus() : ['is_available' => true, 'status' => 'available', 'message' => 'Available'];
                 @endphp
-                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $status['is_available'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                <span class="px-3 py-1 rounded-full text-xs font-medium {{ $status['is_available'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                     {{ ucfirst($status['status']) }}
                 </span>
             </div>
 
-            <div class="space-y-3">
-                <div class="text-sm">
-                    <span class="font-medium text-gray-700">Status:</span>
+            <div class="space-y-2 mb-4">
+                <div class="flex items-center text-sm">
+                    <span class="font-medium text-gray-700 w-20">Status:</span>
                     <span class="ml-2 {{ $status['is_available'] ? 'text-green-600' : 'text-red-600' }}">
                         {{ $status['message'] }}
                     </span>
@@ -50,33 +40,32 @@
 
                 @if($latestSetting && !$status['is_available'])
                     @if($latestSetting->unavailable_until)
-                    <div class="text-sm">
-                        <span class="font-medium text-gray-700">Until:</span>
+                    <div class="flex items-center text-sm">
+                        <span class="font-medium text-gray-700 w-20">Until:</span>
                         <span class="ml-2 text-gray-600">{{ $latestSetting->unavailable_until->format('M d, Y H:i') }}</span>
                     </div>
                     @endif
                     @if($latestSetting->notes)
-                    <div class="text-sm">
-                        <span class="font-medium text-gray-700">Notes:</span>
-                        <span class="ml-2 text-gray-600">{{ $latestSetting->notes }}</span>
+                    <div class="flex items-center text-sm">
+                        <span class="font-medium text-gray-700 w-20">Notes:</span>
+                        <span class="ml-2 text-gray-600">{{ Str::limit($latestSetting->notes, 40) }}</span>
                     </div>
                     @endif
                 @endif
 
                 @if($latestSetting)
-                <div class="text-xs text-gray-500">
-                    <span class="font-medium">Set by:</span> {{ $latestSetting->setBy->first_name ?? '' }} {{ $latestSetting->setBy->last_name ?? 'System' }}<br>
-                    <span class="font-medium">Updated:</span> {{ $latestSetting->updated_at->format('M d, Y H:i') }}
+                <div class="text-xs text-gray-500 pt-3 border-t border-gray-100">
+                    <div class="flex justify-between">
+                        <span><strong>Set by:</strong> {{ $latestSetting->setBy->first_name ?? '' }} {{ $latestSetting->setBy->last_name ?? 'System' }}</span>
+                        <span><strong>Updated:</strong> {{ $latestSetting->updated_at->diffForHumans() }}</span>
+                    </div>
                 </div>
                 @endif
             </div>
 
-            <div class="mt-6 flex space-x-2">
-                <button onclick="setAvailable({{ $doctor->id }})" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    <i class="fas fa-check mr-1"></i>Available
-                </button>
-                <button onclick="setUnavailable({{ $doctor->id }})" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    <i class="fas fa-times mr-1"></i>Unavailable
+            <div class="flex justify-center">
+                <button onclick="setUnavailable({{ $doctor->id }})" class="w-full max-w-xs bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
+                    <i class="fas fa-times mr-1"></i>Set Unavailable
                 </button>
             </div>
         </div>
@@ -85,32 +74,41 @@
 
     <!-- Recent Activity -->
     @if($availabilitySettings->count() > 0)
-    <div class="card p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Availability Changes</h3>
-        <div class="space-y-4">
-            @foreach($availabilitySettings->take(10) as $setting)
-            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Availability Changes</h3>
+            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ $availabilitySettings->count() }} changes</span>
+        </div>
+        <div class="space-y-3">
+            @foreach($availabilitySettings->take(8) as $setting)
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user-md text-blue-600 text-sm"></i>
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-md text-white text-sm"></i>
                     </div>
-                    <div>
+                    <div class="flex-1">
                         <p class="font-medium text-gray-900">Dr. {{ $setting->doctor->user->first_name ?? '' }} {{ $setting->doctor->user->last_name ?? '' }}</p>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-gray-600">
                             Set to <span class="font-medium {{ $setting->is_available ? 'text-green-600' : 'text-red-600' }}">{{ $setting->is_available ? 'Available' : 'Unavailable' }}</span>
                             by {{ $setting->setBy->first_name ?? '' }} {{ $setting->setBy->last_name ?? 'System' }}
                         </p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-sm text-gray-500">{{ $setting->created_at->format('M d, Y H:i') }}</p>
+                    <p class="text-sm font-medium text-gray-900">{{ $setting->created_at->format('M d, Y') }}</p>
+                    <p class="text-xs text-gray-500">{{ $setting->created_at->format('H:i') }}</p>
                     @if($setting->status !== 'available')
-                    <p class="text-xs text-gray-400">{{ ucfirst($setting->status) }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ ucfirst($setting->status) }}</p>
                     @endif
                 </div>
             </div>
             @endforeach
         </div>
+        @if($availabilitySettings->count() > 8)
+        <div class="mt-4 text-center">
+            <p class="text-sm text-gray-500">Showing 8 of {{ $availabilitySettings->count() }} changes</p>
+        </div>
+        @endif
     </div>
     @endif
 </div>
@@ -264,7 +262,7 @@ function closeErrorModal() {
 function confirmAction() {
     const doctorId = document.getElementById('doctorId').value;
     
-    fetch(`/staff/doctor-availability/${doctorId}/${currentAction}`, {
+    fetch(`/staff/doctor-availability/${doctorId}/set-available`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

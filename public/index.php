@@ -35,12 +35,12 @@ require __DIR__.'/../vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
-| Run The Application
+| Bootstrap The Application
 |--------------------------------------------------------------------------
 |
-| Once we have the application, we can handle the incoming request using
-| the application's HTTP kernel. Then, we will send the response back
-| to this client's browser, allowing them to enjoy our application.
+| This script boots the framework and gets it ready for use, then it will
+| load up this application so that we can run it and send the responses
+| back to the browser and delight our users.
 |
 */
 

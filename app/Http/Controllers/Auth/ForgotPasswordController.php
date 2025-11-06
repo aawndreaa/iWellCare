@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\OtpCode;
 use App\Models\User;
-use App\Services\EmailService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,18 +22,16 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Send a password reset OTP to the given user.
+     * Send a password reset link to the given user.
      *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function sendResetLinkEmail(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|string',
         ], [
-            'email.required' => 'Email address is required.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.exists' => 'We could not find a user with that email address.',
+            'email.required' => 'Email address or username is required.',
         ]);
 
         if ($validator->fails()) {
@@ -43,90 +40,45 @@ class ForgotPasswordController extends Controller
                 ->withInput($request->only('email'));
         }
 
-        $email = $request->email;
-        $user = User::where('email', $email)->first();
+        $input = $request->email;
 
-        if (! $user) {
+        // Check if input is email or username
+        $user = User::where('email', $input)->orWhere('username', $input)->first();
+
+        if (!$user) {
             return redirect()->back()
-                ->withErrors(['email' => 'We could not find a user with that email address.'])
+                ->withErrors(['email' => 'We could not find a user with that email address or username.'])
                 ->withInput($request->only('email'));
         }
 
-        try {
-            // Check if user already has a valid OTP
-            if (OtpCode::hasValidCode($email, 'password_reset')) {
-                return redirect()->back()
-                    ->with('info', 'A password reset code has already been sent to your email. Please check your inbox or wait a few minutes before requesting another.');
-            }
+        $email = $user->email;
 
-            // Generate and send OTP
-            $code = OtpCode::generateCode($email, 'password_reset');
-            $result = EmailService::sendOtpEmail($user, 'password_reset');
+        // Send password reset link
+        $status = Password::sendResetLink(['email' => $email]);
 
-            // Store email in session for the reset form
-            $request->session()->put('password_reset_email', $email);
-
-            Log::info('Password reset OTP sent', ['email' => $email]);
-
-            return redirect()->route('password.reset')
-                ->with('success', 'A password reset code has been sent to your email address. Please check your inbox and enter the code below.');
-
-        } catch (\Exception $e) {
-            Log::error('Failed to send password reset OTP', [
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
+        if ($status === Password::RESET_LINK_SENT) {
+            Log::info('Password reset link sent', ['email' => $email]);
 
             return redirect()->back()
-                ->withErrors(['email' => 'There was an error sending the password reset code. Please try again.'])
+                ->with('status', 'We have emailed your password reset link!');
+        } else {
+            Log::error('Failed to send password reset link', ['email' => $email, 'status' => $status]);
+
+            return redirect()->back()
+                ->withErrors(['email' => 'There was an error sending the password reset link. Please try again.'])
                 ->withInput($request->only('email'));
         }
     }
 
     /**
-     * Resend password reset OTP
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * This method is no longer needed for link-based reset
+     * Keeping for backward compatibility if needed
      */
     public function resendOtp(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid email address.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $email = $request->email;
-        $user = User::where('email', $email)->first();
-
-        try {
-            // Generate new OTP
-            $code = OtpCode::generateCode($email, 'password_reset');
-            $result = EmailService::sendOtpEmail($user, 'password_reset');
-
-            Log::info('Password reset OTP resent', ['email' => $email]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'A new password reset code has been sent to your email.',
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to resend password reset OTP', [
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'There was an error sending the password reset code. Please try again.',
-            ], 500);
-        }
+        return response()->json([
+            'success' => false,
+            'message' => 'OTP resend is not available for link-based password reset.',
+        ], 400);
     }
 }

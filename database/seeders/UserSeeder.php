@@ -13,10 +13,11 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create a default doctor (admin functions)
+        // Create the main doctor - Dr. Augustus Caesar Butch B. Bigornia
         User::create([
-            'first_name' => 'Dr. John',
-            'last_name' => 'Smith',
+            'first_name' => 'Dr. Augustus Caesar Butch B.',
+            'last_name' => 'Bigornia',
+            'full_name' => 'Dr. Augustus Caesar Butch B. Bigornia',
             'username' => 'doctor',
             'email' => 'doctor@iwellcare.com',
             'email_verified_at' => now(),
@@ -28,54 +29,14 @@ class UserSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Create a default staff member
-        User::create([
-            'first_name' => 'Sarah',
-            'last_name' => 'Johnson',
-            'username' => 'staff',
-            'email' => 'staff@iwellcare.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password123'),
-            'role' => 'staff',
-            'phone_number' => '+1234567891',
-            'street_address' => '456 Healthcare Ave',
-            'city' => 'Medical District',
-            'is_active' => true,
-        ]);
 
-        // Create additional sample users
-        User::create([
-            'first_name' => 'Dr. Emily',
-            'last_name' => 'Davis',
-            'username' => 'emily',
-            'email' => 'emily.davis@iwellcare.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password123'),
-            'role' => 'doctor',
-            'phone_number' => '+1234567893',
-            'street_address' => '321 Doctor Lane',
-            'city' => 'Medical Center',
-            'is_active' => true,
-        ]);
 
-        User::create([
-            'first_name' => 'Robert',
-            'last_name' => 'Wilson',
-            'username' => 'robert',
-            'email' => 'robert.wilson@iwellcare.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password123'),
-            'role' => 'staff',
-            'phone_number' => '+1234567894',
-            'street_address' => '654 Staff Street',
-            'city' => 'Healthcare District',
-            'is_active' => true,
-        ]);
 
         // Create a sample patient
         User::create([
             'first_name' => 'John',
             'last_name' => 'Doe',
+            'full_name' => 'John Doe',
             'username' => 'patient',
             'email' => 'patient@iwellcare.com',
             'email_verified_at' => now(),

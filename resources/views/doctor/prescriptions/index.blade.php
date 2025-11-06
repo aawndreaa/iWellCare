@@ -101,7 +101,7 @@
                                     <form action="{{ route('doctor.prescriptions.destroy', $prescription) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Are you sure?')">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Are you sure you want to archive this prescription?')">Archive</button>
                                     </form>
                                 </td>
                             </tr>

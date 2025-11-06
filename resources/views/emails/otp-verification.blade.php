@@ -37,6 +37,12 @@
             opacity: 0.9;
             font-size: 16px;
         }
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
         .content {
             padding: 40px;
         }
@@ -127,7 +133,6 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <div class="logo">🏥 iWellCare</div>
             <h1>OTP Verification</h1>
             <p>Secure your account with verification code</p>
         </div>

@@ -47,23 +47,29 @@
                     <div>
                         <label for="availability_date" class="block text-sm font-medium text-gray-700 mb-2">Availability Date *</label>
                         <input type="date" name="availability_date" id="availability_date"
-                               value="{{ old('availability_date') }}"
+                               value="{{ old('availability_date', date('Y-m-d')) }}"
                                class="form-input w-full" required min="{{ date('Y-m-d') }}">
                         <p class="text-sm text-gray-500 mt-1">Select the date when the doctor will be available</p>
                     </div>
 
-                    <!-- Time Range -->
-                    <div>
-                        <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
-                        <input type="time" name="start_time" id="start_time"
-                               value="{{ old('start_time', '09:00') }}"
-                               class="form-input w-full" required>
-                    </div>
-                    <div>
-                        <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
-                        <input type="time" name="end_time" id="end_time"
-                               value="{{ old('end_time', '17:00') }}"
-                               class="form-input w-full" required>
+                    <!-- Operating Hours -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Operating Hours *</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="start_time" class="block text-xs text-gray-500 mb-1">Start Time</label>
+                                <input type="time" name="start_time" id="start_time"
+                                       value="{{ old('start_time', '09:00') }}"
+                                       class="form-input w-full" required>
+                            </div>
+                            <div>
+                                <label for="end_time" class="block text-xs text-gray-500 mb-1">End Time</label>
+                                <input type="time" name="end_time" id="end_time"
+                                       value="{{ old('end_time', '17:00') }}"
+                                       class="form-input w-full" required>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Clinic operating hours: 9:00 AM - 5:00 PM</p>
                     </div>
 
                     <!-- Status -->

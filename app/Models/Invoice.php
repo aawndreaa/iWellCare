@@ -22,6 +22,7 @@ class Invoice extends Model
         'amount',
         'consultation_fee',
         'medication_fee',
+        'laboratory_fee',
         'other_fees',
         'total_sales',
         'less_sc',
@@ -31,6 +32,7 @@ class Invoice extends Model
         'status',
         'payment_date',
         'is_archived',
+        'created_by',
     ];
 
     protected $casts = [
@@ -41,6 +43,7 @@ class Invoice extends Model
         'amount' => 'decimal:2',
         'consultation_fee' => 'decimal:2',
         'medication_fee' => 'decimal:2',
+        'laboratory_fee' => 'decimal:2',
         'other_fees' => 'decimal:2',
         'total_sales' => 'decimal:2',
         'less_sc' => 'decimal:2',
@@ -64,6 +67,14 @@ class Invoice extends Model
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    /**
+     * Get the user who created this invoice.
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
