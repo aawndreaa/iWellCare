@@ -37,7 +37,7 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Date:</span>
-                                <span class="font-medium">{{ \Carbon\Carbon::parse($consultation->consultation_date)->format('l, F j, Y') }}</span>
+                                <span class="font-medium">{{ $consultation->consultation_date?->format('l, F j, Y') }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Time:</span>
