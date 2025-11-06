@@ -8,12 +8,8 @@ echo "🚀 Starting Railway build process..."
 echo "📦 Installing Composer dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
-# Install Node.js dependencies and build assets
-echo "📦 Installing Node.js dependencies..."
-npm install
-
-echo "🔨 Building assets..."
-npm run build
+# Skip Node.js build - no frontend assets in this Laravel app
+echo "⏭️ Skipping Node.js build - no package.json found"
 
 # Generate application key if not exists
 echo "🔑 Generating application key..."
