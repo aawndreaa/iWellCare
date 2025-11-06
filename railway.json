@@ -5,14 +5,14 @@
     "nixpacksPlan": {
       "phases": {
         "setup": {
-          "nixPkgs": ["php82", "php82Packages.composer", "nginx", "php82Packages.php-fpm"]
+          "nixPkgs": ["php82", "php82Packages.composer", "nginx"]
         }
       }
     },
     "buildCommand": "chmod +x railway-build.sh && ./railway-build.sh"
   },
   "deploy": {
-    "startCommand": "php-fpm -D && nginx -g 'daemon off;'",
+    "startCommand": "nginx -g 'daemon off;'",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
