@@ -168,7 +168,7 @@
             </p>
 
             <div style="text-align: center;">
-                <a href="{{ $url }}" class="reset-button" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $url }}" class="reset-button">
                     Reset Password
                 </a>
             </div>
@@ -182,7 +182,7 @@
 
             <p class="message">
                 If the button above doesn't work, you can copy and paste this link into your browser:<br>
-                <a href="{{ $url }}" style="color: #667eea; word-break: break-all;" target="_blank" rel="noopener noreferrer">{{ $url }}</a>
+                <a href="{{ $url }}" style="color: #667eea; word-break: break-all;">{{ $url }}</a>
             </p>
 
             <p class="message">
