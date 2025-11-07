@@ -341,7 +341,7 @@
         @endif
 
         <!-- Password Reset Form -->
-        <form method="POST" action="{{ url('/password/reset') }}">
+        <form method="POST" action="{{ route('password.update') }}">
             @csrf
             <input type="hidden" name="token" value="{{ request()->route('token') }}">
             <input type="hidden" name="email" value="{{ old('email', request()->email ?? '') }}">
