@@ -343,8 +343,8 @@
         <!-- Password Reset Form -->
         <form method="POST" action="{{ route('password.update') }}">
             @csrf
-            <input type="hidden" name="token" value="{{ request()->route('token') }}">
-            <input type="hidden" name="email" value="{{ old('email', request()->email ?? '') }}">
+            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+            <input type="hidden" name="email" value="{{ old('email', $request->email ?? '') }}">
 
             <div class="form-group">
                 <label for="email" class="form-label">Email Address</label>
@@ -355,7 +355,7 @@
                     <input type="email"
                            id="email"
                            name="email"
-                           value="{{ old('email', request()->email ?? '') }}"
+                           value="{{ old('email', $request->email ?? '') }}"
                            placeholder="Enter your email address"
                            required
                            readonly
