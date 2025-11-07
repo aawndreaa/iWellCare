@@ -280,7 +280,7 @@
                 <i class="fas fa-key text-white text-2xl"></i>
             </div>
             <h1 class="forgot-title">Forgot Password</h1>
-            <p class="forgot-subtitle">Enter your email address and we'll send you a verification code to reset your password.</p>
+            <p class="forgot-subtitle">Enter your email address or username and we'll send you a link to reset your password.</p>
         </div>
 
         @if (session('status'))
@@ -336,7 +336,7 @@
 
             <button type="submit" class="btn-forgot">
                 <i class="fas fa-paper-plane"></i>
-                Send Reset Code
+                Send Reset Link
             </button>
         </form>
 
@@ -355,7 +355,7 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-gray-600">
-                        <span class="font-semibold">Note:</span> The reset code will be sent to your email address and will expire in 10 minutes.
+                        <span class="font-semibold">Note:</span> The reset link will be sent to your email address and will expire in 60 minutes.
                     </p>
                 </div>
             </div>
