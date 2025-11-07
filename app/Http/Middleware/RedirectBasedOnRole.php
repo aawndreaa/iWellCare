@@ -21,6 +21,7 @@ class RedirectBasedOnRole
 
             // Redirect based on role
             switch ($user->role) {
+                case 'doctor':
                 case 'admin':
                     return redirect()->route('admin.dashboard');
                 case 'staff':
