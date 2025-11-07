@@ -613,35 +613,25 @@
 
             <div class="form-group">
                 <label for="email" class="form-label">Email Address</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-envelope text-gray-400"></i>
-                    </div>
-                    <input type="email"
-                           id="email"
-                           name="email"
-                           value="{{ old('email', $request->email ?? '') }}"
-                           placeholder="Enter your email address"
-                           required
-                           readonly
-                           class="form-input pl-10 bg-gray-50">
-                </div>
+                <input type="email"
+                        id="email"
+                        name="email"
+                        value="{{ old('email', $request->email ?? '') }}"
+                        placeholder="Enter your email address"
+                        required
+                        readonly
+                        class="form-input bg-gray-50">
             </div>
 
             <div class="form-group">
                 <label for="password" class="form-label">New Password</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-lock text-gray-400"></i>
-                    </div>
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           placeholder="Enter new password"
-                           required
-                           autofocus
-                           class="form-input pl-10 @error('password') border-red-500 @enderror">
-                </div>
+                <input type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter new password"
+                        required
+                        autofocus
+                        class="form-input @error('password') border-red-500 @enderror">
                 @error('password')
                     <div class="error-text">
                         <i class="fas fa-exclamation-circle"></i>
@@ -655,17 +645,12 @@
 
             <div class="form-group">
                 <label for="password_confirmation" class="form-label">Confirm New Password</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-lock text-gray-400"></i>
-                    </div>
-                    <input type="password"
-                           id="password_confirmation"
-                           name="password_confirmation"
-                           placeholder="Confirm new password"
-                           required
-                           class="form-input pl-10 @error('password_confirmation') border-red-500 @enderror">
-                </div>
+                <input type="password"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        placeholder="Confirm new password"
+                        required
+                        class="form-input @error('password_confirmation') border-red-500 @enderror">
                 @error('password_confirmation')
                     <div class="error-text">
                         <i class="fas fa-exclamation-circle"></i>
