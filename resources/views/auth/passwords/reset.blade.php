@@ -117,6 +117,271 @@
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
 
+    .error-text {
+        color: #dc2626;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .links-section {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .link-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .link-text a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .link-text a:hover {
+        color: #1d4ed8;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .reset-wrapper {
+            padding: 0.75rem;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+
+        .reset-card {
+            padding: 1.75rem;
+            max-width: 100%;
+            margin: 0 0.5rem;
+            border-radius: 12px;
+        }
+
+        .reset-title {
+            font-size: 1.5rem;
+        }
+
+        .reset-subtitle {
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+        }
+
+        .btn-reset {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .reset-wrapper {
+            padding: 0.5rem;
+            padding-top: 1rem;
+        }
+
+        .reset-card {
+            padding: 1.5rem;
+            margin: 0 0.25rem;
+        }
+
+        .reset-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .reset-title {
+            font-size: 1.375rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-input {
+            padding: 1rem;
+        }
+
+        .btn-reset {
+            padding: 1.125rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .reset-card {
+            padding: 1.25rem;
+        }
+
+        .reset-title {
+            font-size: 1.25rem;
+        }
+
+        .form-input {
+            padding: 0.875rem;
+        }
+    }
+
+    /* Large screens */
+    @media (min-width: 1024px) {
+        .reset-card {
+            max-width: 450px;
+            padding: 2.5rem;
+        }
+
+        .reset-title {
+            font-size: 2rem;
+        }
+
+        .reset-subtitle {
+            font-size: 1rem;
+        }
+    }
+
+    /* Extra large screens */
+    @media (min-width: 1280px) {
+        .reset-card {
+            max-width: 480px;
+            padding: 3rem;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .form-input {
+            font-size: 1rem; /* Prevents zoom on iOS */
+        }
+
+        .btn-reset {
+            min-height: 48px;
+        }
+    }
+
+    /* High DPI displays */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        .reset-card {
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 12px 12px -5px rgba(0, 0, 0, 0.08);
+        }
+    }
+</style>
+<style>
+    footer { display: none !important; }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .reset-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .reset-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 2rem;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        margin: 0 auto;
+    }
+
+    .reset-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .reset-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .reset-subtitle {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: white;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .btn-reset {
+        width: 100%;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.875rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    .btn-reset:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
     .btn-verify {
         width: 100%;
         background: #10b981;
@@ -300,7 +565,7 @@
     }
 </style>
 
-<div class="reset-wrapper" style="width: 100vw; max-width: 100vw; overflow-x: hidden;">
+<div class="reset-wrapper">
     <div class="reset-card">
         <div class="reset-header">
             <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mb-6">
