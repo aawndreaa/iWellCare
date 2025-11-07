@@ -168,7 +168,7 @@
             </p>
 
             <div style="text-align: center;">
-                <a href="{{ $url }}" class="reset-button">
+                <a href="{{ $url }}" class="reset-button" target="_blank" rel="noopener noreferrer">
                     Reset Password
                 </a>
             </div>
@@ -182,7 +182,7 @@
 
             <p class="message">
                 If the button above doesn't work, you can copy and paste this link into your browser:<br>
-                <a href="{{ $url }}" style="color: #667eea; word-break: break-all;">{{ $url }}</a>
+                <a href="{{ $url }}" style="color: #667eea; word-break: break-all;" target="_blank" rel="noopener noreferrer">{{ $url }}</a>
             </p>
 
             <p class="message">
@@ -198,9 +198,9 @@
                 &copy; {{ date('Y') }} Adult Wellness Clinic and Medical. All rights reserved.
             </p>
             <div class="footer-links">
-                <a href="{{ route('privacy-policy') }}">Privacy Policy</a>
-                <a href="{{ route('terms-of-service') }}">Terms of Service</a>
-                <a href="{{ route('contact') }}">Contact Us</a>
+                <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
+                <a href="{{ url('/terms-of-service') }}">Terms of Service</a>
+                <a href="{{ url('/contact') }}">Contact Us</a>
             </div>
         </div>
     </div>
