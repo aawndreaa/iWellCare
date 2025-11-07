@@ -294,6 +294,9 @@ Route::middleware(['auth', 'role:staff', 'prevent.back'])->prefix('staff')->name
     Route::post('/doctor-availability/bulk-update', [\App\Http\Controllers\Staff\DoctorAvailabilityController::class, 'bulkUpdate'])->name('doctor-availability.bulk-update');
     Route::post('/doctor-availability/{doctor}/set-available', [\App\Http\Controllers\Doctor\AvailabilityController::class, 'setAvailable'])->name('doctor-availability.set-available');
 
+    // Prescriptions
+    Route::resource('prescriptions', \App\Http\Controllers\Staff\PrescriptionController::class);
+
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [\App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('profile.edit');
